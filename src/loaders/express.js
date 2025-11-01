@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const routes = require("../api/routes");
-const requestLogger = require("../middlewares/requestLogger");
-const { errorHandler } = require("../middlewares/error.middleware");
+const requestLogger = require("../api/middlewares/requestLogger");
+const { errorHandler } = require("../api/middlewares/error.middleware");
 
 module.exports = (app) => {
   // Parse JSON requests

@@ -29,6 +29,17 @@ class UserRepository {
   async deleteUser(id) {
     return await User.findByIdAndDelete(id);
   }
+
+  async findByEmailOrPhone(email, phone) {
+    const query = {};
+    if (email) query.email = email;
+    if (phone) query.phone = phone;
+    return await User.findOne(query);
+  }
+
+  async updateById(id, updateData) {
+    return await User.findByIdAndUpdate(id, updateData, { new: true });
+  }
 }
 
 module.exports = new UserRepository();
