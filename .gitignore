@@ -1,0 +1,64 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+logs
+*.log
+logs/*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Build outputs
+dist/
+build/
+.cache/
+.tmp/
+out/
+coverage/
+
+# React Native / Android
+android/app/build/
+android/build/
+*.keystore
+
+# iOS (Skip from Git)
+ios/
+*.xcworkspace
+*.xcodeproj
+*.xcuserdata
+Pods/
+Podfile.lock
+
+# IDE & Editor folders
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Misc
+*.iml
+*.hprof
+*.orig
+*.rej
+*.bak
+*.swp
