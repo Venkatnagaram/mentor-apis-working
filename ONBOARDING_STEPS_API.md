@@ -28,7 +28,7 @@ After OTP verification, users must complete a 5-step onboarding process to activ
 
 ### Get Current Onboarding Step
 
-**GET** `/api/onboarding-steps/current-step`
+**GET** `/api/onboarding/current-step`
 
 Returns the user's current onboarding progress and completed data.
 
@@ -72,7 +72,7 @@ Authorization: Bearer <jwt_token>
 
 ## Step 1: Personal Information 1
 
-**POST** `/api/onboarding-steps/step-1`
+**POST** `/api/onboarding/step-1`
 
 Collects basic personal information.
 
@@ -116,7 +116,7 @@ Authorization: Bearer <jwt_token>
 
 ## Step 2: Personal Information 2
 
-**POST** `/api/onboarding-steps/step-2`
+**POST** `/api/onboarding/step-2`
 
 Collects additional personal information and preferences.
 
@@ -160,7 +160,7 @@ Authorization: Bearer <jwt_token>
 
 ## Step 3: Company Information
 
-**POST** `/api/onboarding-steps/step-3`
+**POST** `/api/onboarding/step-3`
 
 Collects professional/company information.
 
@@ -202,7 +202,7 @@ Authorization: Bearer <jwt_token>
 
 ## Step 4: Upload Photo (SKIPPED)
 
-**POST** `/api/onboarding-steps/step-4`
+**POST** `/api/onboarding/step-4`
 
 Photo upload step - currently skipped for prototype.
 
@@ -235,7 +235,7 @@ Authorization: Bearer <jwt_token>
 
 ## Step 5: Competencies Information
 
-**POST** `/api/onboarding-steps/step-5`
+**POST** `/api/onboarding/step-5`
 
 Final step - rate your competencies. Completing this step activates your profile.
 
@@ -287,7 +287,7 @@ You receive a JWT token. Save it for all subsequent requests.
 ### 2. Check Current Step (Optional)
 
 ```bash
-GET /api/onboarding-steps/current-step
+GET /api/onboarding/current-step
 Authorization: Bearer <token>
 
 # Response shows current_step: 0 (not started)
@@ -296,7 +296,7 @@ Authorization: Bearer <token>
 ### 3. Complete Step 1
 
 ```bash
-POST /api/onboarding-steps/step-1
+POST /api/onboarding/step-1
 Authorization: Bearer <token>
 {
   "full_name": "John Doe",
@@ -310,7 +310,7 @@ Authorization: Bearer <token>
 ### 4. Complete Step 2
 
 ```bash
-POST /api/onboarding-steps/step-2
+POST /api/onboarding/step-2
 Authorization: Bearer <token>
 {
   "country": "IN",
@@ -324,7 +324,7 @@ Authorization: Bearer <token>
 ### 5. Complete Step 3
 
 ```bash
-POST /api/onboarding-steps/step-3
+POST /api/onboarding/step-3
 Authorization: Bearer <token>
 {
   "working_status": "Employed",
@@ -337,7 +337,7 @@ Authorization: Bearer <token>
 ### 6. Skip Step 4
 
 ```bash
-POST /api/onboarding-steps/step-4
+POST /api/onboarding/step-4
 Authorization: Bearer <token>
 {}
 ```
@@ -345,7 +345,7 @@ Authorization: Bearer <token>
 ### 7. Complete Step 5
 
 ```bash
-POST /api/onboarding-steps/step-5
+POST /api/onboarding/step-5
 Authorization: Bearer <token>
 {
   "giving_receiving_feedback": "Good",

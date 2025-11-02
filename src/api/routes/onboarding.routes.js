@@ -40,4 +40,50 @@ router.get(
   onboardingController.checkOnboardingStatus
 );
 
+router.get(
+  "/current-step",
+  verifyToken,
+  onboardingController.getCurrentStep
+);
+
+router.post(
+  "/step-1",
+  verifyToken,
+  onboardingValidator.step1,
+  validateRequest,
+  onboardingController.saveStep1
+);
+
+router.post(
+  "/step-2",
+  verifyToken,
+  onboardingValidator.step2,
+  validateRequest,
+  onboardingController.saveStep2
+);
+
+router.post(
+  "/step-3",
+  verifyToken,
+  onboardingValidator.step3,
+  validateRequest,
+  onboardingController.saveStep3
+);
+
+router.post(
+  "/step-4",
+  verifyToken,
+  onboardingValidator.step4,
+  validateRequest,
+  onboardingController.saveStep4
+);
+
+router.post(
+  "/step-5",
+  verifyToken,
+  onboardingValidator.step5,
+  validateRequest,
+  onboardingController.saveStep5
+);
+
 module.exports = router;
