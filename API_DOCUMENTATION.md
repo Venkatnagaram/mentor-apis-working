@@ -13,87 +13,7 @@ Base URL: `http://localhost:5001/api`
 
 ## Authentication Endpoints
 
-### 1. Register User (Password-Based)
-**Endpoint:** `POST /auth/register`
-**Description:** Register a new user with email and password
-**Rate Limit:** 5 requests per 15 minutes
-**Authentication:** Not required
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "SecurePass123!",
-  "phone": "1234567890",
-  "role": "mentee"
-}
-```
-
-**Fields:**
-- `email` (required): Valid email address
-- `password` (required): Minimum 8 characters, must include uppercase, lowercase, number, and special character
-- `phone` (optional): Phone number, defaults to email if not provided
-- `role` (optional): Either "mentor" or "mentee", defaults to "mentee"
-
-**Success Response (201):**
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "id": "507f1f77bcf86cd799439011",
-    "email": "user@example.com",
-    "role": "mentee"
-  }
-}
-```
-
-**Error Responses:**
-- `409`: Email already registered
-- `400`: Validation error
-
----
-
-### 2. Login
-**Endpoint:** `POST /auth/login`
-**Description:** Login with email and password
-**Rate Limit:** 5 requests per 15 minutes
-**Authentication:** Not required
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "SecurePass123!"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": "507f1f77bcf86cd799439011",
-    "email": "user@example.com",
-    "role": "mentee",
-    "onboarding_completed": false
-  }
-}
-```
-
-**Error Responses:**
-- `401`: Invalid credentials
-- `429`: Account locked (after 5 failed attempts, locked for 15 minutes)
-
-**Notes:**
-- After 5 failed login attempts, account is locked for 15 minutes
-- Lock timer is reset on successful login
-
----
-
-### 3. Get Current User
+### 1. Get Current User
 **Endpoint:** `GET /auth/me`
 **Description:** Get logged-in user's information
 **Authentication:** Required (Bearer Token)
@@ -127,7 +47,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 4. Logout
+### 2. Logout
 **Endpoint:** `POST /auth/logout`
 **Description:** Logout current user (client-side token deletion)
 **Authentication:** Required (Bearer Token)
@@ -621,23 +541,23 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ### Using cURL:
 
-**Register:**
+**Register with OTP:**
 ```bash
-curl -X POST http://localhost:5001/api/auth/register \
+curl -X POST http://localhost:5001/api/onboarding/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"SecurePass123!","role":"mentee"}'
+  -d '{"email":"test@example.com","phone":"1234567890"}'
 ```
 
-**Login:**
+**Verify OTP:**
 ```bash
-curl -X POST http://localhost:5001/api/auth/login \
+curl -X POST http://localhost:5001/api/onboarding/verify-otp \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"SecurePass123!"}'
+  -d '{"email":"test@example.com","otp":"123456"}'
 ```
 
 **Get Current User:**
 ```bash
-curl -X GET http://localhost:/api/auth/me \
+curl -X GET http://localhost:5001/api/auth/me \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -653,9 +573,7 @@ curl -X GET http://localhost:/api/auth/me \
 
 - All timestamps are in ISO 8601 format
 - All dates are stored in UTC
-- Password must be at least 8 characters with uppercase, lowercase, number, and special character
-- Rate limiting: 5 requests per 15 minutes for auth endpoints
-- Account lockout: 15 minutes after 5 failed login attempts
+- Rate limiting: 5 requests per 15 minutes for onboarding endpoints
 - OTP expiry: 10 minutes
 - Default JWT expiry: 7 days
 
@@ -671,7 +589,4 @@ NODE_ENV=development
 MONGODB_URI=mongodb://localhost:27017/mentor-api
 JWT_SECRET=your-secret-key
 JWT_EXPIRY=7d
-MAX_LOGIN_ATTEMPTS=5
-LOCK_TIMEOUT=900000
-PASSWORD_MIN_LENGTH=8
 ```
