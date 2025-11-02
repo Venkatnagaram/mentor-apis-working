@@ -63,6 +63,26 @@ exports.verifyOtp = async (email, otp) => {
   };
 };
 
+exports.login = async (email) => {
+  const user = await userRepo.findByEmail(email);
+  if (!user) throw new Error("User not found");
+
+  if (!user.verified) throw new Error("User not verified. Please complete registration first.");
+
+  const otp = generateOtp();
+  const hashedOtp = await bcrypt.hash(otp, 10);
+  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+  await userRepo.updateUser(user.id, {
+    otp: hashedOtp,
+    otp_expiry: otpExpiry
+  });
+
+  console.log(`OTP for ${email}: ${otp}`);
+
+  return { message: "OTP sent successfully", userId: user.id };
+};
+
 exports.updateUser = async (id, data) => {
   const updateData = {};
 

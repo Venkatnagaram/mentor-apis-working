@@ -5,6 +5,10 @@ exports.register = [
   body("phone").isMobilePhone().withMessage("Valid phone number required"),
 ];
 
+exports.login = [
+  body("email").isEmail().withMessage("Valid email required"),
+];
+
 exports.verifyOtp = [
   body("email").isEmail().withMessage("Email required"),
   body("otp").isLength({ min: 4, max: 6 }).withMessage("Invalid OTP"),

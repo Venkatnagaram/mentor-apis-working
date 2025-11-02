@@ -22,6 +22,16 @@ exports.verifyOtp = async (req, res, next) => {
   }
 };
 
+exports.login = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const data = await onboardingService.login(email);
+    return successResponse(res, "OTP sent successfully", data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.updateUser = async (req, res, next) => {
   try {
     const { userId } = req.body;

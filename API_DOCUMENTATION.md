@@ -99,9 +99,44 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 2. Verify OTP
+### 2. Login with OTP
+**Endpoint:** `POST /onboarding/login`
+**Description:** Login existing user and generate OTP
+**Authentication:** Not required
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "OTP sent successfully",
+  "data": {
+    "message": "OTP sent successfully",
+    "userId": "507f1f77bcf86cd799439011"
+  }
+}
+```
+
+**Notes:**
+- User must be registered and verified
+- OTP is valid for 10 minutes
+- OTP should be sent via SMS/Email (implementation required)
+- For testing, check console logs or database
+
+**Error Responses:**
+- `400`: User not found or not verified
+
+---
+
+### 3. Verify OTP
 **Endpoint:** `POST /onboarding/verify-otp`
-**Description:** Verify OTP and complete registration
+**Description:** Verify OTP for registration or login
 **Authentication:** Not required
 
 **Request Body:**
@@ -137,7 +172,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 3. Update User Profile
+### 4. Update User Profile
 **Endpoint:** `PUT /onboarding/update-user`
 **Description:** Update user profile information
 **Authentication:** Required (Bearer Token)
@@ -182,7 +217,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 4. Complete Mentor Onboarding
+### 5. Complete Mentor Onboarding
 **Endpoint:** `POST /onboarding/complete-mentor`
 **Description:** Mark mentor onboarding as complete
 **Authentication:** Required (Bearer Token)
@@ -204,7 +239,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 5. Complete Mentee Onboarding
+### 6. Complete Mentee Onboarding
 **Endpoint:** `POST /onboarding/complete-mentee`
 **Description:** Mark mentee onboarding as complete
 **Authentication:** Required (Bearer Token)
@@ -226,7 +261,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 6. Check Onboarding Status
+### 7. Check Onboarding Status
 **Endpoint:** `GET /onboarding/status`
 **Description:** Get current user's onboarding status
 **Authentication:** Required (Bearer Token)
@@ -546,6 +581,13 @@ Authorization: Bearer YOUR_JWT_TOKEN
 curl -X POST http://localhost:5001/api/onboarding/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","phone":"1234567890"}'
+```
+
+**Login with OTP:**
+```bash
+curl -X POST http://localhost:5001/api/onboarding/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com"}'
 ```
 
 **Verify OTP:**
