@@ -12,7 +12,7 @@ After OTP verification, users must complete a 5-step onboarding process to activ
 
 ## Onboarding Flow
 
-1. **Register** → `/api/onboarding/register` (with email, phone, country_code, role)
+1. **Register** → `/api/onboarding/register` (with email, phone, country_code, role, agree_terms, agree_privacy)
 2. **Verify OTP** → `/api/onboarding/verify-otp` (with phone, country_code, otp - receives JWT token)
 3. **Complete 5 Steps** (using JWT token):
    - Step 1: Personal Information 1

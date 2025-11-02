@@ -32,6 +32,16 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    agree_terms: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    agree_privacy: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
     onboarding_completed: {
       type: Boolean,
       default: false,

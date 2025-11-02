@@ -5,6 +5,8 @@ exports.register = [
   body("phone").isMobilePhone().withMessage("Valid phone number required"),
   body("country_code").notEmpty().withMessage("Country code is required"),
   body("role").isIn(["mentor", "mentee"]).withMessage("Role must be either mentor or mentee"),
+  body("agree_terms").isBoolean().equals("true").withMessage("You must agree to the terms and conditions"),
+  body("agree_privacy").isBoolean().equals("true").withMessage("You must agree to the privacy policy"),
 ];
 
 exports.verifyOtp = [

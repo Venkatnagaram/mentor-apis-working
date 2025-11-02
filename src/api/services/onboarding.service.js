@@ -3,12 +3,15 @@ const generateOtp = require("../../utils/generateOtp");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-exports.register = async (email, phone, countryCode, role) => {
+exports.register = async (email, phone, countryCode, role, agreeTerms, agreePrivacy) => {
   const existingEmail = await userRepo.findByEmail(email);
   if (existingEmail) throw new Error("Email already registered");
 
   const existingPhone = await userRepo.findByPhone(phone);
   if (existingPhone) throw new Error("Phone already registered");
+
+  if (!agreeTerms) throw new Error("You must agree to the terms and conditions");
+  if (!agreePrivacy) throw new Error("You must agree to the privacy policy");
 
   const otp = generateOtp();
   const hashedOtp = await bcrypt.hash(otp, 10);
@@ -19,6 +22,8 @@ exports.register = async (email, phone, countryCode, role) => {
     phone,
     country_code: countryCode,
     role,
+    agree_terms: agreeTerms,
+    agree_privacy: agreePrivacy,
     otp: hashedOtp,
     otp_expiry: otpExpiry
   });

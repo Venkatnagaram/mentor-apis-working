@@ -4,8 +4,8 @@ const userRepo = require("../repositories/user.repository");
 
 exports.register = async (req, res, next) => {
   try {
-    const { email, phone, country_code, role } = req.body;
-    const data = await onboardingService.register(email, phone, country_code, role);
+    const { email, phone, country_code, role, agree_terms, agree_privacy } = req.body;
+    const data = await onboardingService.register(email, phone, country_code, role, agree_terms, agree_privacy);
     return successResponse(res, "OTP generated successfully", data);
   } catch (err) {
     next(err);

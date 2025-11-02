@@ -47,7 +47,9 @@ Step 1 → Step 2 → Step 3 → Step 4 (Skip) → Step 5 → Profile Active ✓
   "email": "john.doe@example.com",
   "phone": "9876543210",
   "country_code": "+91",
-  "role": "mentor"
+  "role": "mentor",
+  "agree_terms": true,
+  "agree_privacy": true
 }
 ```
 
@@ -544,7 +546,9 @@ curl -X POST http://localhost:3000/api/onboarding/register \
     "email": "alice@example.com",
     "phone": "9876543210",
     "country_code": "+91",
-    "role": "mentor"
+    "role": "mentor",
+    "agree_terms": true,
+    "agree_privacy": true
   }'
 
 # Response: {"success": true, "data": {"userId": "..."}}

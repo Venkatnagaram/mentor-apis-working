@@ -35,17 +35,21 @@ Creates a new user account and sends an OTP for verification.
 ```json
 {
   "email": "user@example.com",
-  "phone": "1234567890",
-  "country_code": "+1",
-  "role": "mentor"
+  "phone": "9876543210",
+  "country_code": "+91",
+  "role": "mentor",
+  "agree_terms": true,
+  "agree_privacy": true
 }
 ```
 
 **Validation:**
-- `email`: Must be a valid email address
-- `phone`: Must be a valid mobile phone number
+- `email`: Must be a valid email address (required)
+- `phone`: Must be a valid mobile phone number (required)
 - `country_code`: Required (e.g., "+1", "+91", "+44")
-- `role`: Must be either "mentor" or "mentee"
+- `role`: Must be either "mentor" or "mentee" (required)
+- `agree_terms`: Must be true (required) - User must agree to terms and conditions
+- `agree_privacy`: Must be true (required) - User must agree to privacy policy
 
 **Success Response (200):**
 ```json
@@ -63,6 +67,8 @@ Creates a new user account and sends an OTP for verification.
 
 **Error Responses:**
 - `400`: Email or phone already registered
+- `400`: You must agree to the terms and conditions
+- `400`: You must agree to the privacy policy
 - `400`: Validation errors
 
 ---
