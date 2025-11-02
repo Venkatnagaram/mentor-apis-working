@@ -36,17 +36,41 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    personal_info: {
-      type: mongoose.Schema.Types.Mixed,
-      default: {},
+    onboarding_step: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
     },
-    professional_info: {
-      type: mongoose.Schema.Types.Mixed,
-      default: {},
+    personal_info_step1: {
+      full_name: String,
+      date_of_birth: Date,
+      gender: String,
+      city: String,
+      state: String,
+    },
+    personal_info_step2: {
+      country: String,
+      timezone: String,
+      languages: [String],
+      hobby: String,
+      bio: String,
+    },
+    company_info: {
+      working_status: String,
+      job_title: String,
+      company_name: String,
+      industry: String,
+    },
+    profile_photo: {
+      type: String,
     },
     competencies: {
-      type: [String],
-      default: [],
+      giving_receiving_feedback: String,
+      listening_skills: String,
+      presentation_skills: String,
+      networking: String,
+      teamwork: String,
     },
     otp: {
       type: String,
