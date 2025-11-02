@@ -1,11 +1,10 @@
-const userRepo = require("../repositories/user.repository");
-const onboardingService = require("../services/onboarding.service");
+const authService = require("../services/auth.service");
 const { successResponse } = require("../../utils/responseHelper");
 
 exports.login = async (req, res, next) => {
   try {
-    const { email } = req.body;
-    const data = await onboardingService.login(email);
+    const { phone, country_code } = req.body;
+    const data = await authService.login(phone, country_code);
     return successResponse(res, "OTP sent successfully", data);
   } catch (err) {
     next(err);
@@ -14,8 +13,8 @@ exports.login = async (req, res, next) => {
 
 exports.verifyLogin = async (req, res, next) => {
   try {
-    const { email, otp } = req.body;
-    const data = await onboardingService.verifyOtp(email, otp);
+    const { phone, country_code, otp } = req.body;
+    const data = await authService.verifyLoginOtp(phone, country_code, otp);
     return successResponse(res, "Login successful", data);
   } catch (err) {
     next(err);
@@ -24,18 +23,18 @@ exports.verifyLogin = async (req, res, next) => {
 
 exports.me = async (req, res, next) => {
   try {
-    const user = await userRepo.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-
-    const { password, otp, otp_expiry, ...userData } = user;
-    res.json({ success: true, data: userData });
+    const userData = await authService.getCurrentUser(req.user.id);
+    return successResponse(res, "User data retrieved", userData);
   } catch (err) {
     next(err);
   }
 };
 
-exports.logout = async (_req, res) => {
-  res.json({ success: true, message: "Logged out successfully" });
+exports.logout = async (req, res, next) => {
+  try {
+    const data = await authService.logout();
+    return successResponse(res, data.message, data);
+  } catch (err) {
+    next(err);
+  }
 };

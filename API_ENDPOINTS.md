@@ -17,8 +17,8 @@ This API provides authentication and onboarding functionality for a mentor-mente
 4. User completes onboarding
 
 ### Login Flow
-1. User requests login with email → Receives OTP (Static OTP: **1234**)
-2. User verifies OTP → Gets JWT token
+1. User requests login with phone and country code → Receives OTP (Static OTP: **1234**)
+2. User verifies OTP with phone, country code, and OTP → Gets JWT token
 
 ---
 
@@ -230,17 +230,19 @@ Authorization: Bearer <jwt_token>
 #### 2.1 Login (Request OTP)
 **POST** `/api/auth/login`
 
-Sends an OTP to the user's email for login verification.
+Sends an OTP to the user's registered phone number for login verification.
 
 **Request Body:**
 ```json
 {
-  "email": "user@example.com"
+  "phone": "9876543210",
+  "country_code": "+91"
 }
 ```
 
 **Validation:**
-- `email`: Must be a valid email address
+- `phone`: Must be a valid mobile phone number
+- `country_code`: Required (e.g., "+1", "+91", "+44")
 
 **Success Response (200):**
 ```json
@@ -257,8 +259,9 @@ Sends an OTP to the user's email for login verification.
 **OTP Note:** For prototype, a static OTP **1234** is used. The OTP is also logged to console.
 
 **Error Responses:**
-- `400`: User not found
+- `400`: User not found with this phone number
 - `400`: User not verified (must complete registration first)
+- `400`: Country code does not match the registered number
 
 ---
 
@@ -270,13 +273,15 @@ Verifies the login OTP and returns a JWT token.
 **Request Body:**
 ```json
 {
-  "email": "user@example.com",
+  "phone": "9876543210",
+  "country_code": "+91",
   "otp": "1234"
 }
 ```
 
 **Validation:**
-- `email`: Must be a valid email address
+- `phone`: Must be a valid mobile phone number
+- `country_code`: Required (e.g., "+1", "+91", "+44")
 - `otp`: Must be 4-6 characters long
 
 **Success Response (200):**

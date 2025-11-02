@@ -6,11 +6,13 @@ const { body } = require("express-validator");
 const validateRequest = require("../middlewares/validateRequest");
 
 const loginValidator = [
-  body("email").isEmail().withMessage("Valid email required"),
+  body("phone").isMobilePhone().withMessage("Valid phone number required"),
+  body("country_code").notEmpty().withMessage("Country code is required"),
 ];
 
 const verifyLoginValidator = [
-  body("email").isEmail().withMessage("Valid email required"),
+  body("phone").isMobilePhone().withMessage("Valid phone number required"),
+  body("country_code").notEmpty().withMessage("Country code is required"),
   body("otp").isLength({ min: 4, max: 6 }).withMessage("Invalid OTP"),
 ];
 
