@@ -75,13 +75,15 @@ Verifies the OTP sent during registration and returns a JWT token.
 **Request Body:**
 ```json
 {
-  "email": "user@example.com",
+  "phone": "9876543210",
+  "country_code": "+91",
   "otp": "1234"
 }
 ```
 
 **Validation:**
-- `email`: Must be a valid email address
+- `phone`: Must be a valid mobile phone number
+- `country_code`: Required (e.g., "+1", "+91", "+44")
 - `otp`: Must be 4-6 characters long
 
 **Success Response (200):**
@@ -95,7 +97,8 @@ Verifies the OTP sent during registration and returns a JWT token.
     "user": {
       "id": "507f1f77bcf86cd799439011",
       "email": "user@example.com",
-      "phone": "+1234567890",
+      "phone": "9876543210",
+      "country_code": "+91",
       "role": "mentor",
       "verified": true,
       "onboarding_completed": false
@@ -105,9 +108,11 @@ Verifies the OTP sent during registration and returns a JWT token.
 ```
 
 **Error Responses:**
-- `400`: User not found
+- `400`: User not found with this phone number
+- `400`: Country code does not match the registered number
 - `400`: Invalid OTP
 - `400`: OTP expired
+- `400`: Validation errors
 
 ---
 

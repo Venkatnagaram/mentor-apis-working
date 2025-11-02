@@ -8,7 +8,8 @@ exports.register = [
 ];
 
 exports.verifyOtp = [
-  body("email").isEmail().withMessage("Email required"),
+  body("phone").isMobilePhone().withMessage("Valid phone number required"),
+  body("country_code").notEmpty().withMessage("Country code is required"),
   body("otp").isLength({ min: 4, max: 6 }).withMessage("Invalid OTP"),
 ];
 

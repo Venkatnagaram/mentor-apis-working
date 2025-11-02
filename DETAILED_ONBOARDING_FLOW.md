@@ -74,7 +74,8 @@ Step 1 → Step 2 → Step 3 → Step 4 (Skip) → Step 5 → Profile Active ✓
 **Request:**
 ```json
 {
-  "email": "john.doe@example.com",
+  "phone": "9876543210",
+  "country_code": "+91",
   "otp": "1234"
 }
 ```
@@ -508,7 +509,7 @@ The system uses a field called `onboarding_step` in your user record:
 | POST | `/api/onboarding/register` | Register new user | No |
 | POST | `/api/onboarding/verify-otp` | Verify OTP and get token | No |
 | POST | `/api/auth/login` | Login existing user | No |
-| POST | `/api/auth/verify-otp` | Verify login OTP | No |
+| POST | `/api/auth/verify-login` | Verify login OTP | No |
 
 ### Onboarding Step Endpoints
 
@@ -552,7 +553,8 @@ curl -X POST http://localhost:3000/api/onboarding/register \
 curl -X POST http://localhost:3000/api/onboarding/verify-otp \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "alice@example.com",
+    "phone": "9876543210",
+    "country_code": "+91",
     "otp": "1234"
   }'
 
@@ -645,10 +647,11 @@ curl -X POST http://localhost:3000/api/auth/login \
 # Response: OTP sent
 
 # 2. Verify OTP
-curl -X POST http://localhost:3000/api/auth/verify-otp \
+curl -X POST http://localhost:3000/api/auth/verify-login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "alice@example.com",
+    "phone": "9876543210",
+    "country_code": "+91",
     "otp": "1234"
   }'
 

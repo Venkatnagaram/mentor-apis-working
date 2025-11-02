@@ -14,8 +14,8 @@ exports.register = async (req, res, next) => {
 
 exports.verifyOtp = async (req, res, next) => {
   try {
-    const { email, otp } = req.body;
-    const user = await onboardingService.verifyOtp(email, otp);
+    const { phone, country_code, otp } = req.body;
+    const user = await onboardingService.verifyOtp(phone, country_code, otp);
     return successResponse(res, "OTP verified successfully", user);
   } catch (err) {
     next(err);

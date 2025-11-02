@@ -28,9 +28,13 @@ exports.register = async (email, phone, countryCode, role) => {
   return { message: "OTP generated successfully", userId: (user._id || user.id).toString() };
 };
 
-exports.verifyOtp = async (email, otp) => {
-  const user = await userRepo.findByEmailOrPhone(email, null);
-  if (!user) throw new Error("User not found");
+exports.verifyOtp = async (phone, countryCode, otp) => {
+  const user = await userRepo.findByPhone(phone);
+  if (!user) throw new Error("User not found with this phone number");
+
+  if (user.country_code !== countryCode) {
+    throw new Error("Country code does not match the registered number");
+  }
 
   if (!user.otp) throw new Error("No OTP found. Please request a new one.");
 
