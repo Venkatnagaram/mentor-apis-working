@@ -1,6 +1,7 @@
 const userRepo = require("../repositories/user.repository");
 const generateOtp = require("../../utils/generateOtp");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 exports.register = async (email, phone) => {
   const existingEmail = await userRepo.findByEmail(email);
@@ -10,10 +11,17 @@ exports.register = async (email, phone) => {
   if (existingPhone) throw new Error("Phone already registered");
 
   const otp = generateOtp();
+  const hashedOtp = await bcrypt.hash(otp, 10);
   const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
-  const user = await userRepo.createUser({ email, phone, otp, otpExpiry });
-  return { message: "OTP generated successfully", userId: user._id };
+  const user = await userRepo.createUser({
+    email,
+    phone,
+    otp: hashedOtp,
+    otp_expiry: otpExpiry
+  });
+
+  return { message: "OTP generated successfully", userId: user.id };
 };
 
 exports.verifyOtp = async (email, otp) => {
@@ -22,20 +30,21 @@ exports.verifyOtp = async (email, otp) => {
 
   if (!user.otp) throw new Error("No OTP found. Please request a new one.");
 
-  if (user.otpExpiry < new Date()) {
+  if (new Date(user.otp_expiry) < new Date()) {
     throw new Error("OTP expired. Please request a new one.");
   }
 
-  const isOtpValid = await user.compareOtp(otp);
+  const isOtpValid = await bcrypt.compare(otp, user.otp);
   if (!isOtpValid) throw new Error("Invalid OTP");
 
-  user.verified = true;
-  user.otp = null;
-  user.otpExpiry = null;
-  await user.save();
+  const updatedUser = await userRepo.updateUser(user.id, {
+    verified: true,
+    otp: null,
+    otp_expiry: null
+  });
 
   const token = jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user.id, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRY || "7d" }
   );
@@ -44,18 +53,26 @@ exports.verifyOtp = async (email, otp) => {
     message: "OTP verified successfully",
     token,
     user: {
-      id: user._id,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      verified: user.verified,
-      onboardingCompleted: user.onboardingCompleted,
+      id: updatedUser.id,
+      email: updatedUser.email,
+      phone: updatedUser.phone,
+      role: updatedUser.role,
+      verified: updatedUser.verified,
+      onboarding_completed: updatedUser.onboarding_completed,
     },
   };
 };
 
 exports.updateUser = async (id, data) => {
-  const updatedUser = await userRepo.updateById(id, data);
+  const updateData = {};
+
+  if (data.personalInfo) updateData.personal_info = data.personalInfo;
+  if (data.professionalInfo) updateData.professional_info = data.professionalInfo;
+  if (data.competencies) updateData.competencies = data.competencies;
+  if (data.onboardingCompleted !== undefined) updateData.onboarding_completed = data.onboardingCompleted;
+  if (data.role) updateData.role = data.role;
+
+  const updatedUser = await userRepo.updateById(id, updateData);
   if (!updatedUser) throw new Error("User not found or update failed");
   return { message: "User updated successfully", user: updatedUser };
 };

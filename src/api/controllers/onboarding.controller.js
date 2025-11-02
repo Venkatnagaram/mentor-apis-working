@@ -1,6 +1,6 @@
 const onboardingService = require("../services/onboarding.service");
 const { successResponse, errorResponse } = require("../../utils/responseHelper");
-const User = require("../models/user.model");
+const userRepo = require("../repositories/user.repository");
 
 exports.register = async (req, res, next) => {
   try {
@@ -37,11 +37,10 @@ exports.completeMentorOnboarding = async (req, res, next) => {
   try {
     if (!req.user?.id) return errorResponse(res, "Unauthorized", 401);
 
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { onboardingCompleted: true, role: "mentor" },
-      { new: true }
-    );
+    const user = await userRepo.updateUser(req.user.id, {
+      onboarding_completed: true,
+      role: "mentor"
+    });
 
     if (!user) return errorResponse(res, "User not found", 404);
 
@@ -55,11 +54,10 @@ exports.completeMenteeOnboarding = async (req, res, next) => {
   try {
     if (!req.user?.id) return errorResponse(res, "Unauthorized", 401);
 
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { onboardingCompleted: true, role: "mentee" },
-      { new: true }
-    );
+    const user = await userRepo.updateUser(req.user.id, {
+      onboarding_completed: true,
+      role: "mentee"
+    });
 
     if (!user) return errorResponse(res, "User not found", 404);
 
@@ -73,11 +71,11 @@ exports.checkOnboardingStatus = async (req, res, next) => {
   try {
     if (!req.user?.id) return errorResponse(res, "Unauthorized", 401);
 
-    const user = await User.findById(req.user.id);
+    const user = await userRepo.findById(req.user.id);
     if (!user) return errorResponse(res, "User not found", 404);
 
     return successResponse(res, "Onboarding status fetched", {
-      onboardingCompleted: user.onboardingCompleted,
+      onboarding_completed: user.onboarding_completed,
       role: user.role,
     });
   } catch (err) {
