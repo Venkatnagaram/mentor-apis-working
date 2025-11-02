@@ -1,114 +1,56 @@
-const supabase = require("../../config/db");
+const User = require("../models/User");
 
 class UserRepository {
   async createUser(data) {
-    const { data: user, error } = await supabase
-      .from("users")
-      .insert([data])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return user;
+    const user = new User(data);
+    await user.save();
+    return user.toObject();
   }
 
   async findByEmail(email) {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    return await User.findOne({ email }).lean();
   }
 
   async findByPhone(phone) {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("phone", phone)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    return await User.findOne({ phone }).lean();
   }
 
   async findById(id) {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    return await User.findById(id).lean();
   }
 
   async updateUser(id, updateData) {
-    const { data, error } = await supabase
-      .from("users")
-      .update(updateData)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return await User.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).lean();
   }
 
   async getAllUsers(filter = {}) {
-    let query = supabase.from("users").select("*");
-
-    Object.entries(filter).forEach(([key, value]) => {
-      query = query.eq(key, value);
-    });
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-    return data;
+    return await User.find(filter).lean();
   }
 
   async deleteUser(id) {
-    const { data, error } = await supabase
-      .from("users")
-      .delete()
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return await User.findByIdAndDelete(id).lean();
   }
 
   async findByEmailOrPhone(email, phone) {
-    let query = supabase.from("users").select("*");
-
+    const query = {};
     if (email && phone) {
-      query = query.or(`email.eq.${email},phone.eq.${phone}`);
+      query.$or = [{ email }, { phone }];
     } else if (email) {
-      query = query.eq("email", email);
+      query.email = email;
     } else if (phone) {
-      query = query.eq("phone", phone);
+      query.phone = phone;
     }
-
-    const { data, error } = await query.maybeSingle();
-
-    if (error) throw error;
-    return data;
+    return await User.findOne(query).lean();
   }
 
   async updateById(id, updateData) {
-    const { data, error } = await supabase
-      .from("users")
-      .update(updateData)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return await User.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).lean();
   }
 }
 

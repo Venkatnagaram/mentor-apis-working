@@ -1,10 +1,11 @@
-const supabase = require("../config/db");
+const connectDB = require("../config/db");
 const expressLoader = require("./express");
 
 module.exports = async (app) => {
   console.log("🧩 Initializing application loaders...");
 
-  console.log("✅ Supabase Connected");
+  await connectDB();
+  console.log("✅ MongoDB Connected");
 
   await expressLoader(app);
   console.log("✅ Express Initialized");

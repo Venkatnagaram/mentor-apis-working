@@ -1,27 +1,16 @@
-const { createClient } = require("@supabase/supabase-js");
+const mongoose = require("mongoose");
 
-const initSupabase = () => {
+const connectDB = async () => {
   try {
-    if (!process.env.SUPABASE_URL) {
-      throw new Error("SUPABASE_URL environment variable is not defined");
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MONGODB_URI environment variable is not defined");
     }
-    if (!process.env.SUPABASE_ANON_KEY) {
-      throw new Error("SUPABASE_ANON_KEY environment variable is not defined");
-    }
-
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_ANON_KEY
-    );
-
-    console.log("✅ Supabase client initialized successfully");
-    return supabase;
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    console.log(`✅ MongoDB connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error("❌ Supabase initialization failed:", error.message);
+    console.error("❌ MongoDB connection failed:", error.message);
     process.exit(1);
   }
 };
 
-const supabase = initSupabase();
-
-module.exports = supabase;
+module.exports = connectDB;

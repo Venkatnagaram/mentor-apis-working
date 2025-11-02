@@ -1,128 +1,58 @@
-const supabase = require("../../config/db");
+const Mentor = require("../models/Mentor");
 
 class MentorRepository {
   async create(data) {
-    const { data: mentor, error } = await supabase
-      .from("mentors")
-      .insert([data])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return mentor;
+    const mentor = new Mentor(data);
+    await mentor.save();
+    return mentor.toObject();
   }
 
   async findByUserId(userId) {
-    const { data, error } = await supabase
-      .from("mentors")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    return await Mentor.findOne({ user_id: userId }).lean();
   }
 
   async findById(id) {
-    const { data, error } = await supabase
-      .from("mentors")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    return await Mentor.findById(id).lean();
   }
 
   async findByIdWithUser(id) {
-    const { data, error } = await supabase
-      .from("mentors")
-      .select(`
-        *,
-        user:users!user_id(
-          id,
-          email,
-          personal_info,
-          professional_info
-        )
-      `)
-      .eq("id", id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    return await Mentor.findById(id)
+      .populate("user_id", "email personal_info professional_info")
+      .lean();
   }
 
   async findByUserIdWithUser(userId) {
-    const { data, error } = await supabase
-      .from("mentors")
-      .select(`
-        *,
-        user:users!user_id(
-          id,
-          email,
-          personal_info,
-          professional_info
-        )
-      `)
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    return await Mentor.findOne({ user_id: userId })
+      .populate("user_id", "email personal_info professional_info")
+      .lean();
   }
 
   async update(userId, updateData) {
-    const { data, error } = await supabase
-      .from("mentors")
-      .update(updateData)
-      .eq("user_id", userId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return await Mentor.findOneAndUpdate({ user_id: userId }, updateData, {
+      new: true,
+      runValidators: true,
+    }).lean();
   }
 
   async findAll(filter = {}) {
-    let query = supabase
-      .from("mentors")
-      .select(`
-        *,
-        user:users!user_id(
-          id,
-          email,
-          personal_info,
-          professional_info
-        )
-      `);
+    const query = {};
 
     if (filter.status) {
-      query = query.eq("status", filter.status);
+      query.status = filter.status;
     }
 
     if (filter.expertiseArea) {
-      query = query.contains("expertise_areas", [filter.expertiseArea]);
+      query.expertise_areas = { $in: [filter.expertiseArea] };
     }
 
-    query = query.order("created_at", { ascending: false });
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-    return data;
+    return await Mentor.find(query)
+      .populate("user_id", "email personal_info professional_info")
+      .sort({ createdAt: -1 })
+      .lean();
   }
 
   async delete(userId) {
-    const { data, error } = await supabase
-      .from("mentors")
-      .delete()
-      .eq("user_id", userId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return await Mentor.findOneAndDelete({ user_id: userId }).lean();
   }
 }
 
