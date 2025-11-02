@@ -1,5 +1,18 @@
 const rateLimit = {};
 
+const cleanupInterval = setInterval(() => {
+  const now = Date.now();
+  Object.keys(rateLimit).forEach((key) => {
+    if (rateLimit[key].resetTime < now) {
+      delete rateLimit[key];
+    }
+  });
+}, 60 * 1000);
+
+if (cleanupInterval.unref) {
+  cleanupInterval.unref();
+}
+
 const getRateLimiter = (maxAttempts = 5, windowMs = 15 * 60 * 1000) => {
   return (req, res, next) => {
     const key = `${req.ip}-${req.path}`;
