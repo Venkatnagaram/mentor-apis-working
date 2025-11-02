@@ -1,5 +1,6 @@
 const userRepo = require("../repositories/user.repository");
 const generateOtp = require("../../utils/generateOtp");
+const jwt = require("jsonwebtoken");
 
 exports.register = async (email, phone) => {
   // Check if user already exists
@@ -29,7 +30,24 @@ exports.verifyOtp = async (email, otp) => {
   user.otp = null;
   await user.save();
 
-  return { message: "OTP verified successfully", user };
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  return {
+    message: "OTP verified successfully",
+    token,
+    user: {
+      id: user._id,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      verified: user.verified,
+      onboardingCompleted: user.onboardingCompleted,
+    },
+  };
 };
 
 exports.updateUser = async (id, data) => {

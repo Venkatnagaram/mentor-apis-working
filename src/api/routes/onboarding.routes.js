@@ -4,8 +4,8 @@ const router = express.Router();
 const onboardingController = require("../controllers/onboarding.controller");
 const onboardingValidator = require("../validators/onboarding.validator");
 const validateRequest = require("../middlewares/validateRequest");
+const { verifyToken } = require("../middlewares/auth.middleware");
 
-// ✅ Route for user registration (send OTP)
 router.post(
   "/register",
   onboardingValidator.register,
@@ -13,12 +13,37 @@ router.post(
   onboardingController.register
 );
 
-// ✅ Route for OTP verification
 router.post(
   "/verify-otp",
   onboardingValidator.verifyOtp,
   validateRequest,
   onboardingController.verifyOtp
+);
+
+router.put(
+  "/update-user",
+  verifyToken,
+  onboardingValidator.updateUser,
+  validateRequest,
+  onboardingController.updateUser
+);
+
+router.post(
+  "/complete-mentor",
+  verifyToken,
+  onboardingController.completeMentorOnboarding
+);
+
+router.post(
+  "/complete-mentee",
+  verifyToken,
+  onboardingController.completeMenteeOnboarding
+);
+
+router.get(
+  "/status",
+  verifyToken,
+  onboardingController.checkOnboardingStatus
 );
 
 module.exports = router;

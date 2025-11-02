@@ -9,3 +9,7 @@ exports.verifyOtp = [
   body("email").isEmail().withMessage("Email required"),
   body("otp").isLength({ min: 4, max: 6 }).withMessage("Invalid OTP"),
 ];
+
+exports.updateUser = [
+  body("userId").optional().isMongoId().withMessage("Valid user ID required"),
+];

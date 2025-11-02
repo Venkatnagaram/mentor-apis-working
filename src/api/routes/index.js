@@ -4,9 +4,11 @@ const router = express.Router();
 // Import route modules
 const authRoutes = require("./auth.routes");
 const onboardingRoutes = require("./onboarding.routes");
+const mentorRoutes = require("./mentor.routes");
 
 // Mount routes with prefixes
 router.use("/auth", authRoutes);
 router.use("/onboarding", onboardingRoutes);
+router.use("/mentors", mentorRoutes);
 
 module.exports = router;
