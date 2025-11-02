@@ -11,13 +11,13 @@ This API provides authentication and onboarding functionality for a mentor-mente
 ## Authentication Flow
 
 ### Registration Flow
-1. User registers with email, phone, and role → Receives OTP
+1. User registers with email, phone, country code, and role → Receives OTP (Static OTP: **1234**)
 2. User verifies OTP → Gets JWT token
 3. User updates profile information
 4. User completes onboarding
 
 ### Login Flow
-1. User requests login with email → Receives OTP
+1. User requests login with email → Receives OTP (Static OTP: **1234**)
 2. User verifies OTP → Gets JWT token
 
 ---
@@ -35,7 +35,8 @@ Creates a new user account and sends an OTP for verification.
 ```json
 {
   "email": "user@example.com",
-  "phone": "+1234567890",
+  "phone": "1234567890",
+  "country_code": "+1",
   "role": "mentor"
 }
 ```
@@ -43,6 +44,7 @@ Creates a new user account and sends an OTP for verification.
 **Validation:**
 - `email`: Must be a valid email address
 - `phone`: Must be a valid mobile phone number
+- `country_code`: Required (e.g., "+1", "+91", "+44")
 - `role`: Must be either "mentor" or "mentee"
 
 **Success Response (200):**
@@ -57,7 +59,7 @@ Creates a new user account and sends an OTP for verification.
 }
 ```
 
-**OTP Note:** The OTP is logged to console (for development). In production, this should be sent via SMS/Email.
+**OTP Note:** For prototype, a static OTP **1234** is used. The OTP is also logged to console.
 
 **Error Responses:**
 - `400`: Email or phone already registered
@@ -252,7 +254,7 @@ Sends an OTP to the user's email for login verification.
 }
 ```
 
-**OTP Note:** The OTP is logged to console (for development).
+**OTP Note:** For prototype, a static OTP **1234** is used. The OTP is also logged to console.
 
 **Error Responses:**
 - `400`: User not found
@@ -427,6 +429,7 @@ Authorization: Bearer <your_jwt_token>
 {
   email: String (required, unique),
   phone: String (required, unique),
+  country_code: String (required),
   password: String (optional, for future use),
   role: String (enum: ["mentee", "mentor"], default: "mentee"),
   verified: Boolean (default: false),
@@ -466,10 +469,11 @@ NODE_ENV=development
 POST /api/onboarding/register
 {
   "email": "mentor@example.com",
-  "phone": "+1234567890",
+  "phone": "1234567890",
+  "country_code": "+1",
   "role": "mentor"
 }
-# Check console for OTP
+# OTP is always: 1234
 
 # Step 2: Verify OTP
 POST /api/onboarding/verify-otp
@@ -507,7 +511,7 @@ POST /api/auth/login
 {
   "email": "mentor@example.com"
 }
-# Check console for OTP
+# OTP is always: 1234
 
 # Step 2: Verify Login OTP
 POST /api/auth/verify-login
@@ -532,7 +536,8 @@ The API includes rate limiting middleware to prevent abuse. Default limits can b
 
 ## Notes
 
-1. **OTP Generation**: Currently logs OTP to console for development. In production, integrate with SMS/Email service.
+1. **OTP Generation**: Static OTP **1234** is used for prototype. OTP is logged to console. In production, integrate with SMS/Email service and use dynamic OTP generation.
 2. **Security**: OTPs are hashed using bcrypt before storing in database.
 3. **Token Security**: Store JWT tokens securely on the client (e.g., httpOnly cookies or secure storage).
 4. **Role-Based Access**: Both mentors and mentees use the same endpoints, differentiated by the `role` field.
+5. **Country Code**: Stored separately from phone number for better international support.

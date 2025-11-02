@@ -3,7 +3,7 @@ const generateOtp = require("../../utils/generateOtp");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-exports.register = async (email, phone, role) => {
+exports.register = async (email, phone, countryCode, role) => {
   const existingEmail = await userRepo.findByEmail(email);
   if (existingEmail) throw new Error("Email already registered");
 
@@ -17,6 +17,7 @@ exports.register = async (email, phone, role) => {
   const user = await userRepo.createUser({
     email,
     phone,
+    country_code: countryCode,
     role,
     otp: hashedOtp,
     otp_expiry: otpExpiry
