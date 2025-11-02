@@ -7,7 +7,6 @@ const MentorSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true,
     },
 
     // Mentor’s domain or specialization areas
@@ -45,8 +44,7 @@ const MentorSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Index for fast lookup by user or status
-MentorSchema.index({ user: 1 });
+MentorSchema.index({ user: 1 }, { unique: true });
 MentorSchema.index({ status: 1 });
 
 module.exports = mongoose.model("Mentor", MentorSchema);

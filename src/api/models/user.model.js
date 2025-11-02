@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,6 +18,7 @@ const userSchema = new mongoose.Schema(
     },
     password: { type: String },
     otp: { type: String },
+    otpExpiry: { type: Date },
     verified: { type: Boolean, default: false },
     role: {
       type: String,
@@ -24,8 +26,9 @@ const userSchema = new mongoose.Schema(
       default: "mentee",
     },
     onboardingCompleted: { type: Boolean, default: false },
+    loginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date },
 
-    // Step 3 - Personal Info
     personalInfo: {
       fullName: String,
       dob: Date,
@@ -38,7 +41,6 @@ const userSchema = new mongoose.Schema(
       timezone: String,
     },
 
-    // Step 4 - Professional Info
     professionalInfo: {
       workingStatus: String,
       jobTitle: String,
@@ -46,7 +48,6 @@ const userSchema = new mongoose.Schema(
       industry: String,
     },
 
-    // Step 5 - Competencies
     competencies: {
       feedback: String,
       listening: String,
@@ -58,7 +59,21 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Helpful index for fast lookup during onboarding
 userSchema.index({ email: 1, phone: 1 });
+userSchema.index({ otpExpiry: 1 }, { expireAfterSeconds: 0 });
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("otp")) return next();
+  try {
+    this.otp = await bcrypt.hash(this.otp, 10);
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+userSchema.methods.compareOtp = async function (enteredOtp) {
+  return await bcrypt.compare(enteredOtp, this.otp);
+};
 
 module.exports = mongoose.model("User", userSchema);
