@@ -12,7 +12,7 @@ exports.register = async (email, phone, countryCode, role) => {
 
   const otp = generateOtp();
   const hashedOtp = await bcrypt.hash(otp, 10);
-  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+  const otpExpiry = new Date(Date.now() + 1000 * 60 * 1000);
 
   const user = await userRepo.createUser({
     email,
