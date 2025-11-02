@@ -1,6 +1,6 @@
 # Mentor API Documentation
 
-Base URL: `http://localhost:5000/api`
+Base URL: `http://localhost:5001/api`
 
 ## Table of Contents
 1. [Authentication Endpoints](#authentication-endpoints)
@@ -623,21 +623,21 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 **Register:**
 ```bash
-curl -X POST http://localhost:5000/api/auth/register \
+curl -X POST http://localhost:5001/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"SecurePass123!","role":"mentee"}'
 ```
 
 **Login:**
 ```bash
-curl -X POST http://localhost:5000/api/auth/login \
+curl -X POST http://localhost:5001/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"SecurePass123!"}'
 ```
 
 **Get Current User:**
 ```bash
-curl -X GET http://localhost:5000/api/auth/me \
+curl -X GET http://localhost:/api/auth/me \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -666,7 +666,7 @@ curl -X GET http://localhost:5000/api/auth/me \
 Required environment variables (see .env.example):
 
 ```
-PORT=5000
+PORT=5001
 NODE_ENV=development
 MONGODB_URI=mongodb://localhost:27017/mentor-api
 JWT_SECRET=your-secret-key
