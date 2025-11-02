@@ -13,7 +13,43 @@ Base URL: `http://localhost:5001/api`
 
 ## Authentication Endpoints
 
-### 1. Get Current User
+### 1. Login with OTP
+**Endpoint:** `POST /auth/login`
+**Description:** Login existing user and generate OTP
+**Authentication:** Not required
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "OTP sent successfully",
+  "data": {
+    "message": "OTP sent successfully",
+    "userId": "507f1f77bcf86cd799439011"
+  }
+}
+```
+
+**Notes:**
+- User must be registered and verified
+- OTP is valid for 10 minutes
+- OTP should be sent via SMS/Email (implementation required)
+- For testing, check console logs or database
+- After receiving OTP, use `/onboarding/verify-otp` to complete login
+
+**Error Responses:**
+- `400`: User not found or not verified
+
+---
+
+### 2. Get Current User
 **Endpoint:** `GET /auth/me`
 **Description:** Get logged-in user's information
 **Authentication:** Required (Bearer Token)
@@ -47,7 +83,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 2. Logout
+### 3. Logout
 **Endpoint:** `POST /auth/logout`
 **Description:** Logout current user (client-side token deletion)
 **Authentication:** Required (Bearer Token)
@@ -99,42 +135,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 2. Login with OTP
-**Endpoint:** `POST /onboarding/login`
-**Description:** Login existing user and generate OTP
-**Authentication:** Not required
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "OTP sent successfully",
-  "data": {
-    "message": "OTP sent successfully",
-    "userId": "507f1f77bcf86cd799439011"
-  }
-}
-```
-
-**Notes:**
-- User must be registered and verified
-- OTP is valid for 10 minutes
-- OTP should be sent via SMS/Email (implementation required)
-- For testing, check console logs or database
-
-**Error Responses:**
-- `400`: User not found or not verified
-
----
-
-### 3. Verify OTP
+### 2. Verify OTP
 **Endpoint:** `POST /onboarding/verify-otp`
 **Description:** Verify OTP for registration or login
 **Authentication:** Not required
@@ -172,7 +173,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 4. Update User Profile
+### 3. Update User Profile
 **Endpoint:** `PUT /onboarding/update-user`
 **Description:** Update user profile information
 **Authentication:** Required (Bearer Token)
@@ -217,7 +218,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 5. Complete Mentor Onboarding
+### 4. Complete Mentor Onboarding
 **Endpoint:** `POST /onboarding/complete-mentor`
 **Description:** Mark mentor onboarding as complete
 **Authentication:** Required (Bearer Token)
@@ -239,7 +240,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 6. Complete Mentee Onboarding
+### 5. Complete Mentee Onboarding
 **Endpoint:** `POST /onboarding/complete-mentee`
 **Description:** Mark mentee onboarding as complete
 **Authentication:** Required (Bearer Token)
@@ -261,7 +262,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 7. Check Onboarding Status
+### 6. Check Onboarding Status
 **Endpoint:** `GET /onboarding/status`
 **Description:** Get current user's onboarding status
 **Authentication:** Required (Bearer Token)
@@ -585,7 +586,7 @@ curl -X POST http://localhost:5001/api/onboarding/register \
 
 **Login with OTP:**
 ```bash
-curl -X POST http://localhost:5001/api/onboarding/login \
+curl -X POST http://localhost:5001/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com"}'
 ```

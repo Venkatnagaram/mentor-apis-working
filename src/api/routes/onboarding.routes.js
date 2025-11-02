@@ -14,13 +14,6 @@ router.post(
 );
 
 router.post(
-  "/login",
-  onboardingValidator.login,
-  validateRequest,
-  onboardingController.login
-);
-
-router.post(
   "/verify-otp",
   onboardingValidator.verifyOtp,
   validateRequest,

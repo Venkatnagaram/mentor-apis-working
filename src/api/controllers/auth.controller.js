@@ -1,4 +1,16 @@
 const userRepo = require("../repositories/user.repository");
+const onboardingService = require("../services/onboarding.service");
+const { successResponse } = require("../../utils/responseHelper");
+
+exports.login = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const data = await onboardingService.login(email);
+    return successResponse(res, "OTP sent successfully", data);
+  } catch (err) {
+    next(err);
+  }
+};
 
 exports.me = async (req, res, next) => {
   try {
