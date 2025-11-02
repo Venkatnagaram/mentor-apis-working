@@ -25,7 +25,7 @@ exports.register = async (email, phone, countryCode, role) => {
 
   console.log(`OTP for ${email}: ${otp}`);
 
-  return { message: "OTP generated successfully", userId: user.id };
+  return { message: "OTP generated successfully", userId: (user._id || user.id).toString() };
 };
 
 exports.verifyOtp = async (email, otp) => {
@@ -41,14 +41,15 @@ exports.verifyOtp = async (email, otp) => {
   const isOtpValid = await bcrypt.compare(otp, user.otp);
   if (!isOtpValid) throw new Error("Invalid OTP");
 
-  const updatedUser = await userRepo.updateUser(user.id, {
+  const userId = user._id || user.id;
+  const updatedUser = await userRepo.updateUser(userId, {
     verified: true,
     otp: null,
     otp_expiry: null
   });
 
   const token = jwt.sign(
-    { id: user.id, role: user.role },
+    { id: userId.toString(), role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRY || "7d" }
   );
@@ -57,9 +58,10 @@ exports.verifyOtp = async (email, otp) => {
     message: "OTP verified successfully",
     token,
     user: {
-      id: updatedUser.id,
+      id: (updatedUser._id || updatedUser.id).toString(),
       email: updatedUser.email,
       phone: updatedUser.phone,
+      country_code: updatedUser.country_code,
       role: updatedUser.role,
       verified: updatedUser.verified,
       onboarding_completed: updatedUser.onboarding_completed,
@@ -77,14 +79,15 @@ exports.login = async (email) => {
   const hashedOtp = await bcrypt.hash(otp, 10);
   const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
-  await userRepo.updateUser(user.id, {
+  const userId = user._id || user.id;
+  await userRepo.updateUser(userId, {
     otp: hashedOtp,
     otp_expiry: otpExpiry
   });
 
   console.log(`OTP for ${email}: ${otp}`);
 
-  return { message: "OTP sent successfully", userId: user.id };
+  return { message: "OTP sent successfully", userId: userId.toString() };
 };
 
 exports.updateUser = async (id, data) => {
