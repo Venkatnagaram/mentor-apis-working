@@ -95,7 +95,7 @@ exports.updateUser = async (id, data) => {
   if (data.onboardingCompleted !== undefined) updateData.onboarding_completed = data.onboardingCompleted;
   if (data.role) updateData.role = data.role;
 
-  const updatedUser = await userRepo.updateById(id, updateData);
+  const updatedUser = await userRepo.updateUser(id, updateData);
   if (!updatedUser) throw new Error("User not found or update failed");
   return { message: "User updated successfully", user: updatedUser };
 };

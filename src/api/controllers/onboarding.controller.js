@@ -24,9 +24,8 @@ exports.verifyOtp = async (req, res, next) => {
 
 exports.updateUser = async (req, res, next) => {
   try {
-    const { userId } = req.body;
-    if (!userId) return errorResponse(res, "User ID is required", 400);
-    const updated = await onboardingService.updateUser(userId, req.body);
+    if (!req.user?.id) return errorResponse(res, "Unauthorized", 401);
+    const updated = await onboardingService.updateUser(req.user.id, req.body);
     return successResponse(res, "User updated successfully", updated);
   } catch (err) {
     next(err);

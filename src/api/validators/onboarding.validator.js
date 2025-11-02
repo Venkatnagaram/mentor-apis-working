@@ -11,6 +11,4 @@ exports.verifyOtp = [
   body("otp").isLength({ min: 4, max: 6 }).withMessage("Invalid OTP"),
 ];
 
-exports.updateUser = [
-  body("userId").optional().isMongoId().withMessage("Valid user ID required"),
-];
+exports.updateUser = [];

@@ -45,13 +45,6 @@ class UserRepository {
     }
     return await User.findOne(query).lean();
   }
-
-  async updateById(id, updateData) {
-    return await User.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    }).lean();
-  }
 }
 
 module.exports = new UserRepository();

@@ -12,6 +12,16 @@ exports.login = async (req, res, next) => {
   }
 };
 
+exports.verifyLogin = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const data = await onboardingService.verifyOtp(email, otp);
+    return successResponse(res, "Login successful", data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.me = async (req, res, next) => {
   try {
     const user = await userRepo.findById(req.user.id);
