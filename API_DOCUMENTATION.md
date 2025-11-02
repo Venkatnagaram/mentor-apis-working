@@ -102,16 +102,21 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ### 1. Register with OTP
 **Endpoint:** `POST /onboarding/register`
-**Description:** Register a new user and generate OTP
+**Description:** Register a new user with role selection and generate OTP
 **Authentication:** Not required
 
 **Request Body:**
 ```json
 {
   "email": "user@example.com",
-  "phone": "1234567890"
+  "phone": "1234567890",
+  "role": "mentor"
 }
 ```
+
+**Role Options:**
+- `mentor`: User registering as a mentor
+- `mentee`: User registering as a mentee
 
 **Success Response (200):**
 ```json
@@ -126,12 +131,13 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 **Notes:**
+- Role must be specified during registration (mentor or mentee)
 - OTP is valid for 10 minutes
 - OTP should be sent via SMS/Email (implementation required)
 - For testing, check console logs or database
 
 **Error Responses:**
-- `400`: Email or phone already registered
+- `400`: Email or phone already registered, or invalid role
 
 ---
 
@@ -218,9 +224,9 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 ---
 
-### 4. Complete Mentor Onboarding
-**Endpoint:** `POST /onboarding/complete-mentor`
-**Description:** Mark mentor onboarding as complete
+### 4. Complete Onboarding
+**Endpoint:** `POST /onboarding/complete`
+**Description:** Mark onboarding as complete for the logged-in user (works for both mentor and mentee)
 **Authentication:** Required (Bearer Token)
 
 **Request Body:** None
@@ -229,40 +235,33 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```json
 {
   "success": true,
-  "message": "Mentor onboarding completed",
+  "message": "Onboarding completed successfully",
   "data": {
     "id": "507f1f77bcf86cd799439011",
+    "email": "user@example.com",
+    "phone": "1234567890",
+    "role": "mentor",
+    "verified": true,
     "onboarding_completed": true,
-    "role": "mentor"
+    "personal_info": {...},
+    "professional_info": {...},
+    "competencies": [...]
   }
 }
 ```
 
----
+**Notes:**
+- This endpoint works for both mentors and mentees
+- User's role is already set during registration
+- Simply marks the onboarding process as complete
 
-### 5. Complete Mentee Onboarding
-**Endpoint:** `POST /onboarding/complete-mentee`
-**Description:** Mark mentee onboarding as complete
-**Authentication:** Required (Bearer Token)
-
-**Request Body:** None
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "Mentee onboarding completed",
-  "data": {
-    "id": "507f1f77bcf86cd799439011",
-    "onboarding_completed": true,
-    "role": "mentee"
-  }
-}
-```
+**Error Responses:**
+- `401`: Unauthorized (invalid or missing token)
+- `404`: User not found
 
 ---
 
-### 6. Check Onboarding Status
+### 5. Check Onboarding Status
 **Endpoint:** `GET /onboarding/status`
 **Description:** Get current user's onboarding status
 **Authentication:** Required (Bearer Token)
@@ -581,7 +580,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```bash
 curl -X POST http://localhost:5001/api/onboarding/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","phone":"1234567890"}'
+  -d '{"email":"test@example.com","phone":"1234567890","role":"mentor"}'
 ```
 
 **Login with OTP:**

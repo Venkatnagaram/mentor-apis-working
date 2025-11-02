@@ -3,6 +3,7 @@ const { body } = require("express-validator");
 exports.register = [
   body("email").isEmail().withMessage("Valid email required"),
   body("phone").isMobilePhone().withMessage("Valid phone number required"),
+  body("role").isIn(["mentor", "mentee"]).withMessage("Role must be either mentor or mentee"),
 ];
 
 exports.verifyOtp = [

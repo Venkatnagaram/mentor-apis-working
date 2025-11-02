@@ -4,8 +4,8 @@ const userRepo = require("../repositories/user.repository");
 
 exports.register = async (req, res, next) => {
   try {
-    const { email, phone } = req.body;
-    const data = await onboardingService.register(email, phone);
+    const { email, phone, role } = req.body;
+    const data = await onboardingService.register(email, phone, role);
     return successResponse(res, "OTP generated successfully", data);
   } catch (err) {
     next(err);
@@ -33,35 +33,17 @@ exports.updateUser = async (req, res, next) => {
   }
 };
 
-exports.completeMentorOnboarding = async (req, res, next) => {
+exports.completeOnboarding = async (req, res, next) => {
   try {
     if (!req.user?.id) return errorResponse(res, "Unauthorized", 401);
 
     const user = await userRepo.updateUser(req.user.id, {
-      onboarding_completed: true,
-      role: "mentor"
+      onboarding_completed: true
     });
 
     if (!user) return errorResponse(res, "User not found", 404);
 
-    return successResponse(res, "Mentor onboarding completed", user);
-  } catch (err) {
-    next(err);
-  }
-};
-
-exports.completeMenteeOnboarding = async (req, res, next) => {
-  try {
-    if (!req.user?.id) return errorResponse(res, "Unauthorized", 401);
-
-    const user = await userRepo.updateUser(req.user.id, {
-      onboarding_completed: true,
-      role: "mentee"
-    });
-
-    if (!user) return errorResponse(res, "User not found", 404);
-
-    return successResponse(res, "Mentee onboarding completed", user);
+    return successResponse(res, "Onboarding completed successfully", user);
   } catch (err) {
     next(err);
   }

@@ -29,15 +29,9 @@ router.put(
 );
 
 router.post(
-  "/complete-mentor",
+  "/complete",
   verifyToken,
-  onboardingController.completeMentorOnboarding
-);
-
-router.post(
-  "/complete-mentee",
-  verifyToken,
-  onboardingController.completeMenteeOnboarding
+  onboardingController.completeOnboarding
 );
 
 router.get(
