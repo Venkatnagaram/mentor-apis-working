@@ -3,21 +3,15 @@ const generateOtp = require("../../utils/generateOtp");
 const jwt = require("jsonwebtoken");
 
 exports.register = async (email, phone) => {
-  // Check if user already exists
-  const existing = await userRepo.findByEmailOrPhone(email, phone);
+  const existingEmail = await userRepo.findByEmail(email);
+  if (existingEmail) throw new Error("Email already registered");
+
+  const existingPhone = await userRepo.findByPhone(phone);
+  if (existingPhone) throw new Error("Phone already registered");
 
   const otp = generateOtp();
-
-  if (existing) {
-    // Update OTP for existing user (e.g., resend)
-    existing.otp = otp;
-    await existing.save();
-    return { message: "OTP regenerated for existing user", otp, userId: existing._id };
-  }
-
-  // Create new user
   const user = await userRepo.createUser({ email, phone, otp });
-  return { message: "OTP generated successfully", otp, userId: user._id };
+  return { message: "OTP generated successfully", userId: user._id };
 };
 
 exports.verifyOtp = async (email, otp) => {
