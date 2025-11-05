@@ -39,11 +39,10 @@ class UserRepository {
 
   async findByEmailOrPhone(email, phone) {
     const query = {};
-
     if (email && phone) {
       query.$or = [
         { email: { $regex: `^${email}$`, $options: "i" } },
-        { phone },
+        { phone: phone.trim() },
       ];
     } else if (email) {
       query.email = { $regex: `^${email}$`, $options: "i" };

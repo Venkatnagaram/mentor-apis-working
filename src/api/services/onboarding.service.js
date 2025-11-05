@@ -5,35 +5,48 @@ const bcrypt = require("bcryptjs");
 
 exports.register = async (email, phone, countryCode, role, agreeTerms, agreePrivacy) => {
   const normalizedEmail = email.toLowerCase().trim();
+  const trimmedPhone = phone.trim();
 
-  const existingEmail = await userRepo.findByEmail(normalizedEmail);
-  if (existingEmail) throw new Error("Email already registered");
+  const [existingEmail, existingPhone] = await Promise.all([
+    userRepo.findByEmail(normalizedEmail),
+    userRepo.findByPhone(trimmedPhone),
+  ]);
 
-  const existingPhone = await userRepo.findByPhone(phone);
-  if (existingPhone) throw new Error("Phone already registered");
+  const errors = [];
+  if (existingEmail) errors.push("Email already registered");
+  if (existingPhone) errors.push("Phone already registered");
+
+  if (errors.length > 0) {
+    // Return combined message if both exist
+    throw new Error(errors.join(" and "));
+  }
 
   if (!agreeTerms) throw new Error("You must agree to the terms and conditions");
   if (!agreePrivacy) throw new Error("You must agree to the privacy policy");
 
   const otp = generateOtp();
   const hashedOtp = await bcrypt.hash(otp, 10);
-  const otpExpiry = new Date(Date.now() + 1000 * 60 * 1000);
+  const otpExpiry = new Date(Date.now() + 1000 * 60 * 10); // 10 minutes expiry
 
   const user = await userRepo.createUser({
     email: normalizedEmail,
-    phone,
+    phone: trimmedPhone,
     country_code: countryCode,
     role,
     agree_terms: agreeTerms,
     agree_privacy: agreePrivacy,
     otp: hashedOtp,
-    otp_expiry: otpExpiry
+    otp_expiry: otpExpiry,
   });
 
-  console.log(`OTP for ${normalizedEmail}: ${otp}`);
+  console.log(`✅ OTP for ${normalizedEmail}: ${otp}`);
 
-  return { message: "OTP generated successfully", userId: (user._id || user.id).toString() };
+  return {
+    message: "OTP generated successfully",
+    userId: (user._id || user.id).toString(),
+  };
 };
+
 
 exports.verifyOtp = async (phone, countryCode, otp) => {
   const user = await userRepo.findByPhone(phone);
