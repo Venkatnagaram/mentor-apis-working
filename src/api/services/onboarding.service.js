@@ -4,7 +4,9 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
 exports.register = async (email, phone, countryCode, role, agreeTerms, agreePrivacy) => {
-  const existingEmail = await userRepo.findByEmail(email);
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const existingEmail = await userRepo.findByEmail(normalizedEmail);
   if (existingEmail) throw new Error("Email already registered");
 
   const existingPhone = await userRepo.findByPhone(phone);
@@ -18,7 +20,7 @@ exports.register = async (email, phone, countryCode, role, agreeTerms, agreePriv
   const otpExpiry = new Date(Date.now() + 1000 * 60 * 1000);
 
   const user = await userRepo.createUser({
-    email,
+    email: normalizedEmail,
     phone,
     country_code: countryCode,
     role,
@@ -28,7 +30,7 @@ exports.register = async (email, phone, countryCode, role, agreeTerms, agreePriv
     otp_expiry: otpExpiry
   });
 
-  console.log(`OTP for ${email}: ${otp}`);
+  console.log(`OTP for ${normalizedEmail}: ${otp}`);
 
   return { message: "OTP generated successfully", userId: (user._id || user.id).toString() };
 };

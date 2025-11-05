@@ -8,7 +8,10 @@ class UserRepository {
   }
 
   async findByEmail(email) {
-    return await User.findOne({ email }).lean();
+    if (!email) return null;
+    return await User.findOne({
+      email: { $regex: `^${email}$`, $options: "i" }, // Case-insensitive exact match
+    }).lean();
   }
 
   async findByPhone(phone) {
@@ -36,13 +39,18 @@ class UserRepository {
 
   async findByEmailOrPhone(email, phone) {
     const query = {};
+
     if (email && phone) {
-      query.$or = [{ email }, { phone }];
+      query.$or = [
+        { email: { $regex: `^${email}$`, $options: "i" } },
+        { phone },
+      ];
     } else if (email) {
-      query.email = email;
+      query.email = { $regex: `^${email}$`, $options: "i" };
     } else if (phone) {
       query.phone = phone;
     }
+
     return await User.findOne(query).lean();
   }
 }
