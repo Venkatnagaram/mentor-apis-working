@@ -65,8 +65,30 @@ Creates a new user account and sends an OTP for verification.
 
 **OTP Note:** For prototype, a static OTP **1234** is used. The OTP is also logged to console.
 
+**Incomplete Registration Handling:**
+If a user previously started registration but didn't complete onboarding (`onboarding_completed: false`), they can re-register with the same phone number and email to continue where they left off. The system will:
+- Send a new OTP to the same user
+- Allow them to complete their onboarding from their last step
+- Return `isReturningUser: true` in the response
+
+**Success Response for Returning User (200):**
+```json
+{
+  "success": true,
+  "message": "Welcome back! OTP sent to continue your registration",
+  "data": {
+    "message": "Welcome back! OTP sent to continue your registration",
+    "userId": "507f1f77bcf86cd799439011",
+    "isReturningUser": true
+  }
+}
+```
+
 **Error Responses:**
-- `400`: Email or phone already registered
+- `400`: Phone number already registered with a completed profile. Please login instead.
+- `400`: This phone number is registered with a different email address.
+- `400`: Email already registered with a different phone number.
+- `400`: Country code does not match the registered number.
 - `400`: You must agree to the terms and conditions
 - `400`: You must agree to the privacy policy
 - `400`: Validation errors

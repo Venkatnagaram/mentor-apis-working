@@ -390,6 +390,44 @@ The system uses a field called `onboarding_step` in your user record:
 
 ## Resume After Leaving
 
+### Important: Incomplete Registration Handling
+
+**If user left before completing registration (onboarding_completed: false):**
+
+Users can re-register with the same phone number and email to continue their onboarding:
+
+1. **Call the same registration endpoint** with the same details
+2. **System recognizes the incomplete registration** and sends a new OTP
+3. **After OTP verification**, user continues from their last completed step
+
+**Example Flow:**
+```bash
+# Day 1: User registers but leaves after Step 2
+POST /api/onboarding/register → OTP sent
+POST /api/onboarding/verify-otp → Token received
+POST /api/onboarding/step-1 → Step 1 saved
+POST /api/onboarding/step-2 → Step 2 saved
+# User closes app (onboarding_step = 2, onboarding_completed = false)
+
+# Day 2: User returns and tries to register again
+POST /api/onboarding/register
+# (same phone, email, country_code)
+# Response: "Welcome back! OTP sent to continue your registration"
+# isReturningUser: true
+
+POST /api/onboarding/verify-otp → Token received
+GET /api/onboarding/current-step → Shows current_step = 2
+POST /api/onboarding/step-3 → Continue from Step 3
+```
+
+**Key Benefits:**
+- No need to remember if they registered before
+- Seamless user experience
+- Data preservation from previous steps
+- Same phone/email validation ensures security
+
+---
+
 ### Scenario 1: User Completes Step 1 and Closes App
 
 **What happens:**
@@ -398,7 +436,7 @@ The system uses a field called `onboarding_step` in your user record:
 3. User closes app/browser
 
 **When user comes back:**
-1. User logs in (if needed) and gets JWT token
+1. User re-registers OR logs in (if they remember) and gets JWT token
 2. User calls: `GET /api/onboarding/current-step`
 
 **Response:**

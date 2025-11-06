@@ -4,46 +4,73 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
 exports.register = async (email, phone, countryCode, role, agreeTerms, agreePrivacy) => {
-  const normalizedEmail = email.toLowerCase().trim();
-  const trimmedPhone = phone.trim();
-
-  const [existingEmail, existingPhone] = await Promise.all([
-    userRepo.findByEmail(normalizedEmail),
-    userRepo.findByPhone(trimmedPhone),
-  ]);
-
-  const errors = [];
-  if (existingEmail) errors.push("Email already registered");
-  if (existingPhone) errors.push("Phone already registered");
-
-  if (errors.length > 0) {
-    // Return combined message if both exist
-    throw new Error(errors.join(" and "));
-  }
-
   if (!agreeTerms) throw new Error("You must agree to the terms and conditions");
   if (!agreePrivacy) throw new Error("You must agree to the privacy policy");
 
+  const existingPhone = await userRepo.findByPhone(phone);
+
+  if (existingPhone) {
+    if (existingPhone.onboarding_completed) {
+      throw new Error("Phone number already registered with a completed profile. Please login instead.");
+    }
+
+    if (existingPhone.email !== email) {
+      throw new Error("This phone number is registered with a different email address.");
+    }
+
+    if (existingPhone.country_code !== countryCode) {
+      throw new Error("Country code does not match the registered number.");
+    }
+
+    const otp = generateOtp();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    const userId = existingPhone._id || existingPhone.id;
+    await userRepo.updateUser(userId, {
+      role: role,
+      agree_terms: agreeTerms,
+      agree_privacy: agreePrivacy,
+      otp: hashedOtp,
+      otp_expiry: otpExpiry,
+      verified: false
+    });
+
+    console.log(`OTP for returning user ${email}: ${otp}`);
+
+    return {
+      message: "Welcome back! OTP sent to continue your registration",
+      userId: userId.toString(),
+      isReturningUser: true
+    };
+  }
+
+  const existingEmail = await userRepo.findByEmail(email);
+  if (existingEmail) {
+    throw new Error("Email already registered with a different phone number.");
+  }
+
   const otp = generateOtp();
   const hashedOtp = await bcrypt.hash(otp, 10);
-  const otpExpiry = new Date(Date.now() + 1000 * 60 * 10); // 10 minutes expiry
+  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
   const user = await userRepo.createUser({
-    email: normalizedEmail,
-    phone: trimmedPhone,
+    email,
+    phone,
     country_code: countryCode,
     role,
     agree_terms: agreeTerms,
     agree_privacy: agreePrivacy,
     otp: hashedOtp,
-    otp_expiry: otpExpiry,
+    otp_expiry: otpExpiry
   });
 
-  console.log(`✅ OTP for ${normalizedEmail}: ${otp}`);
+  console.log(`OTP for ${email}: ${otp}`);
 
   return {
     message: "OTP generated successfully",
     userId: (user._id || user.id).toString(),
+    isReturningUser: false
   };
 };
 
