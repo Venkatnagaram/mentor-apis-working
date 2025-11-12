@@ -198,14 +198,28 @@ Authorization: Bearer <your-jwt-token>
 Authorization: Bearer <your-jwt-token>
 ```
 
-**Request Body:**
+**Request Body (Mentor):**
 ```json
 {
   "country": "India",
   "timezone": "Asia/Kolkata",
   "languages": ["English", "Hindi", "Tamil"],
   "hobby": "Hiking",
-  "bio": "Passionate about mentoring and helping others grow in their tech careers."
+  "bio": "Passionate about mentoring and helping others grow in their tech careers.",
+  "skills_to_teach": ["JavaScript", "React", "Node.js", "Career Guidance"]
+}
+```
+
+**Request Body (Mentee):**
+```json
+{
+  "country": "India",
+  "timezone": "Asia/Kolkata",
+  "languages": ["English", "Hindi"],
+  "hobby": "Reading",
+  "bio": "Eager to learn and grow in the tech industry",
+  "skills_to_learn": ["Python", "Machine Learning", "Data Science"],
+  "goal": "Become a data scientist within 2 years"
 }
 ```
 
@@ -215,6 +229,9 @@ Authorization: Bearer <your-jwt-token>
 - `languages`: Array of strings, minimum 1 language (required)
 - `hobby`: String (required)
 - `bio`: String, max 140 characters (required)
+- `skills_to_teach`: Array of strings (optional, for mentors) - Skills they can teach
+- `skills_to_learn`: Array of strings (optional, for mentees) - Skills they want to learn
+- `goal`: String (optional, for mentees) - Their learning/career goal
 
 **Response:**
 ```json
@@ -623,7 +640,7 @@ curl -X POST http://localhost:3000/api/onboarding/step-1 \
 
 # Response: {"data": {"onboarding_step": 1, "next_step": 2}}
 
-# 5. Complete Step 2
+# 5. Complete Step 2 (Mentor)
 curl -X POST http://localhost:3000/api/onboarding/step-2 \
   -H "Authorization: Bearer eyJhbG..." \
   -H "Content-Type: application/json" \
@@ -632,7 +649,8 @@ curl -X POST http://localhost:3000/api/onboarding/step-2 \
     "timezone": "Asia/Kolkata",
     "languages": ["English", "Hindi", "Marathi"],
     "hobby": "Reading",
-    "bio": "Experienced software engineer passionate about mentoring new developers."
+    "bio": "Experienced software engineer passionate about mentoring new developers.",
+    "skills_to_teach": ["JavaScript", "React", "Node.js", "Career Guidance"]
   }'
 
 # Response: {"data": {"onboarding_step": 2, "next_step": 3}}

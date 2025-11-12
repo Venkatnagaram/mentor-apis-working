@@ -178,14 +178,28 @@ exports.saveStep1 = async (userId, data) => {
 };
 
 exports.saveStep2 = async (userId, data) => {
+  const step2Data = {
+    country: data.country,
+    timezone: data.timezone,
+    languages: data.languages,
+    hobby: data.hobby,
+    bio: data.bio,
+  };
+
+  if (data.skills_to_learn) {
+    step2Data.skills_to_learn = data.skills_to_learn;
+  }
+
+  if (data.skills_to_teach) {
+    step2Data.skills_to_teach = data.skills_to_teach;
+  }
+
+  if (data.goal) {
+    step2Data.goal = data.goal;
+  }
+
   const updateData = {
-    personal_info_step2: {
-      country: data.country,
-      timezone: data.timezone,
-      languages: data.languages,
-      hobby: data.hobby,
-      bio: data.bio,
-    },
+    personal_info_step2: step2Data,
     onboarding_step: 2,
   };
 

@@ -125,14 +125,28 @@ Collects additional personal information and preferences.
 Authorization: Bearer <jwt_token>
 ```
 
-**Request Body:**
+**Request Body (Mentor):**
 ```json
 {
   "country": "IN",
   "timezone": "Asia/Kolkata",
   "languages": ["English", "Hindi"],
   "hobby": "Hiking",
-  "bio": "Passionate about mentoring and helping others grow in their careers"
+  "bio": "Passionate about mentoring and helping others grow in their careers",
+  "skills_to_teach": ["JavaScript", "React", "Node.js", "Career Guidance"]
+}
+```
+
+**Request Body (Mentee):**
+```json
+{
+  "country": "IN",
+  "timezone": "Asia/Kolkata",
+  "languages": ["English", "Hindi"],
+  "hobby": "Reading",
+  "bio": "Eager to learn and grow in the tech industry",
+  "skills_to_learn": ["Python", "Machine Learning", "Data Science"],
+  "goal": "Become a data scientist within 2 years"
 }
 ```
 
@@ -142,6 +156,9 @@ Authorization: Bearer <jwt_token>
 - `languages`: Required, array with at least one language
 - `hobby`: Required
 - `bio`: Required, max 140 characters
+- `skills_to_teach`: Optional, array (for mentors)
+- `skills_to_learn`: Optional, array (for mentees)
+- `goal`: Optional, string (for mentees)
 
 **Success Response (200):**
 ```json

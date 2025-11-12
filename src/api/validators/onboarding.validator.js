@@ -31,6 +31,9 @@ exports.step2 = [
   body("languages").isArray({ min: 1 }).withMessage("At least one language is required"),
   body("hobby").notEmpty().withMessage("Hobby is required"),
   body("bio").notEmpty().isLength({ max: 140 }).withMessage("Bio is required (max 140 characters)"),
+  body("skills_to_learn").optional().isArray().withMessage("Skills to learn must be an array"),
+  body("skills_to_teach").optional().isArray().withMessage("Skills to teach must be an array"),
+  body("goal").optional().isString().withMessage("Goal must be a string"),
 ];
 
 exports.step3 = [

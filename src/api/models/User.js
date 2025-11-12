@@ -65,6 +65,9 @@ const userSchema = new mongoose.Schema(
       languages: [String],
       hobby: String,
       bio: String,
+      skills_to_learn: [String],
+      skills_to_teach: [String],
+      goal: String,
     },
     company_info: {
       working_status: String,
