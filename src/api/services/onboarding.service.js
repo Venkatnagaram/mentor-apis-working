@@ -182,7 +182,7 @@ exports.saveStep2 = async (userId, data) => {
     country: data.country,
     timezone: data.timezone,
     languages: data.languages,
-    hobby: data.hobby,
+    hobbies: data.hobbies,
     bio: data.bio,
   };
 

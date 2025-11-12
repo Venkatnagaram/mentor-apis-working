@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema(
       country: String,
       timezone: String,
       languages: [String],
-      hobby: String,
+      hobby: [String],
       bio: String,
       skills_to_learn: [String],
       skills_to_teach: [String],
