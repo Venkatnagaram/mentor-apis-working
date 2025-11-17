@@ -216,7 +216,7 @@ Authorization: Bearer <your-jwt-token>
   "country": "India",
   "timezone": "Asia/Kolkata",
   "languages": ["English", "Hindi"],
-  "hobby": "Reading",
+  "hobby": ["Reading","Hiking"],
   "bio": "Eager to learn and grow in the tech industry",
   "skills_to_learn": ["Python", "Machine Learning", "Data Science"],
   "goal": "Become a data scientist within 2 years"
