@@ -400,6 +400,206 @@ Authorization: Bearer <jwt_token>
 
 ---
 
+### 3. User Profile APIs
+
+#### 3.1 Get User Profile
+**GET** `/api/users/profile`
+
+Returns the authenticated user's profile information (excludes sensitive fields like role, verified status, and onboarding flags).
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "User profile retrieved successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "personal_info_step1": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "personal_info_step2": {
+      "age": 30,
+      "location": "New York"
+    },
+    "company_info": {
+      "company": "Tech Corp",
+      "position": "Senior Developer"
+    },
+    "profile_photo": "https://example.com/photo.jpg",
+    "competencies": ["JavaScript", "React", "Node.js"],
+    "created_at": "2025-01-01T00:00:00.000Z",
+    "updated_at": "2025-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- `401`: Unauthorized (missing or invalid token)
+- `404`: User not found
+
+---
+
+#### 3.2 Get User By ID
+**GET** `/api/users/:userId`
+
+Returns a specific user's profile information by their user ID (excludes sensitive fields).
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**URL Parameters:**
+- `userId`: MongoDB ObjectId of the user
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "User profile retrieved successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "personal_info_step1": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "personal_info_step2": {
+      "age": 30,
+      "location": "New York"
+    },
+    "company_info": {
+      "company": "Tech Corp",
+      "position": "Senior Developer"
+    },
+    "profile_photo": "https://example.com/photo.jpg",
+    "competencies": ["JavaScript", "React", "Node.js"],
+    "created_at": "2025-01-01T00:00:00.000Z",
+    "updated_at": "2025-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- `400`: User ID is required
+- `401`: Unauthorized (missing or invalid token)
+- `404`: User not found
+
+---
+
+#### 3.3 Update User Profile
+**PUT** `/api/users/profile`
+
+Updates the authenticated user's profile information. Only allows updating specific profile fields.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Request Body:**
+```json
+{
+  "personal_info_step1": {
+    "firstName": "John",
+    "lastName": "Doe"
+  },
+  "personal_info_step2": {
+    "age": 30,
+    "location": "New York"
+  },
+  "company_info": {
+    "company": "Tech Corp",
+    "position": "Senior Developer",
+    "experience": 5
+  },
+  "profile_photo": "https://example.com/photo.jpg",
+  "competencies": ["JavaScript", "React", "Node.js", "TypeScript"]
+}
+
+{
+  "personal_info_step1": {
+    "full_name": "Aryan Maharaj",
+    "date_of_birth": "1981-07-13T00:00:00.000Z",
+    "gender": "Male",
+    "city": "Mumbai",
+    "state": "Maharashtra"
+  },
+  "personal_info_step2": {
+    "country": "India",
+    "timezone": "Asia/Kolkata",
+    "languages": ["English", "Hindi"],
+    "hobby": ["Photography", "Reading"],
+    "bio": "I have over 15 years of experience as a Data Scientist. I enjoy teaching and mentoring.",
+    "skills_to_teach": ["UX Design", "React", "Data Science"]
+  },
+  "company_info": {
+    "working_status": "Employed",
+    "job_title": "Senior Data Scientist",
+    "company_name": "Tech Corp",
+    "industry": "Technology"
+  },
+  "profile_photo": "https://example.com/photos/profile.jpg",
+  "competencies": {
+    "giving_receiving_feedback": "Good",
+    "listening_skills": "Excellent",
+    "presentation_skills": "Good",
+    "networking": "Fair",
+    "teamwork": "Excellent"
+  }
+}
+
+```
+
+**Allowed Fields:**
+- `personal_info_step1`: Object (flexible schema)
+- `personal_info_step2`: Object (flexible schema)
+- `company_info`: Object (flexible schema)
+- `profile_photo`: String (URL)
+- `competencies`: Array of Strings
+
+**Note:** All fields are optional. Send only the fields you want to update. Protected fields (role, verified, onboarding_completed, onboarding_step) cannot be updated through this endpoint.
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Profile updated successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "personal_info_step1": {
+      "firstName": "John",
+      "lastName": "Doe"
+    },
+    "personal_info_step2": {
+      "age": 30,
+      "location": "New York"
+    },
+    "company_info": {
+      "company": "Tech Corp",
+      "position": "Senior Developer",
+      "experience": 5
+    },
+    "profile_photo": "https://example.com/photo.jpg",
+    "competencies": ["JavaScript", "React", "Node.js", "TypeScript"],
+    "created_at": "2025-01-01T00:00:00.000Z",
+    "updated_at": "2025-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- `400`: No valid fields to update
+- `401`: Unauthorized (missing or invalid token)
+- `404`: User not found
+
+---
+
 ## Error Response Format
 
 All error responses follow this format:
