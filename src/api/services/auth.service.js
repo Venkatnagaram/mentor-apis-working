@@ -52,7 +52,7 @@ exports.verifyLoginOtp = async (phone, countryCode, otp) => {
   });
 
   const token = jwt.sign(
-    { id: userId.toString(), role: user.role },
+    { id: userId.toString(), role: user.role, name: updatedUser.personal_info_step1.full_name, },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRY || "7d" }
   );
