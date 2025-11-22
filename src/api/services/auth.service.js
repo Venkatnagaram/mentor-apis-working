@@ -62,13 +62,7 @@ exports.verifyLoginOtp = async (phone, countryCode, otp) => {
     token,
     user: {
       id: (updatedUser._id || updatedUser.id).toString(),
-      email: updatedUser.email,
-      phone: updatedUser.phone,
-      country_code: updatedUser.country_code,
       role: updatedUser.role,
-      verified: updatedUser.verified,
-      onboarding_completed: updatedUser.onboarding_completed,
-      onboarding_step: updatedUser.onboarding_step || 0,
     },
   };
 };
