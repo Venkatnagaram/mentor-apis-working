@@ -63,6 +63,7 @@ exports.verifyLoginOtp = async (phone, countryCode, otp) => {
     user: {
       id: (updatedUser._id || updatedUser.id).toString(),
       role: updatedUser.role,
+      name: updatedUser.personal_info_step1.full_name,
     },
   };
 };
