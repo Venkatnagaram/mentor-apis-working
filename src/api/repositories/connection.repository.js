@@ -32,7 +32,7 @@ exports.getPendingRequestsForMentor = async (mentorId) => {
     mentor_id: mentorId,
     status: "pending",
   })
-    .populate("mentee_id", "personal_info_step1 company_info profile_photo role")
+    .populate("mentee_id", "personal_info_step1 personal_info_step2 company_info profile_photo role")
     .sort({ requested_at: -1 });
 };
 
