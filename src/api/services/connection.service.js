@@ -63,7 +63,25 @@ exports.respondToConnectionRequest = async (mentorId, connectionId, action, repl
 
 exports.getPendingRequests = async (mentorId) => {
   const requests = await connectionRepo.getPendingRequestsForMentor(mentorId);
-  return requests;
+
+  return requests.map(request => ({
+    _id: request._id,
+    mentee_id: {
+      _id: request.mentee_id._id,
+      role: request.mentee_id.role,
+      city: request.mentee_id.personal_info_step1?.city,
+      state: request.mentee_id.personal_info_step1?.state,
+      country: request.mentee_id.personal_info_step2?.country,
+      job_title: request.mentee_id.company_info?.job_title,
+    },
+    mentor_id: request.mentor_id,
+    status: request.status,
+    request_message: request.request_message,
+    requested_at: request.requested_at,
+    createdAt: request.createdAt,
+    updatedAt: request.updatedAt,
+    __v: request.__v,
+  }));
 };
 
 exports.getSentRequests = async (menteeId) => {
