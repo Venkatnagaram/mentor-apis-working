@@ -69,6 +69,7 @@ exports.getPendingRequests = async (mentorId) => {
     mentee_id: {
       _id: request.mentee_id._id,
       role: request.mentee_id.role,
+      full_name: request.mentee_id.personal_info_step1?.full_name,
       city: request.mentee_id.personal_info_step1?.city,
       state: request.mentee_id.personal_info_step1?.state,
       country: request.mentee_id.personal_info_step2?.country,
