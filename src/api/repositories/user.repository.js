@@ -52,6 +52,10 @@ class UserRepository {
 
     return await User.findOne(query).lean();
   }
+
+  async getUsersByRole(role) {
+    return await User.find({ role }).lean();
+  }
 }
 
 module.exports = new UserRepository();

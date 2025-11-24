@@ -47,3 +47,24 @@ exports.updateProfile = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getUsersByRole = async (req, res, next) => {
+  try {
+    const { role } = req.query;
+
+    if (!role) {
+      return errorResponse(res, "Role parameter is required", 400);
+    }
+
+    const users = await userService.getUsersByRole(role);
+    return successResponse(res, `${role}s retrieved successfully`, {
+      count: users.length,
+      users,
+    });
+  } catch (err) {
+    if (err.message.includes("Invalid role")) {
+      return errorResponse(res, err.message, 400);
+    }
+    next(err);
+  }
+};

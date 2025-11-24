@@ -59,6 +59,25 @@ class UserService {
     return this.formatUserProfile(updatedUser);
   }
 
+  async getUsersByRole(role) {
+    if (!role || !['mentor', 'mentee'].includes(role)) {
+      throw new Error("Invalid role. Must be 'mentor' or 'mentee'");
+    }
+
+    const users = await userRepo.getUsersByRole(role);
+
+    return users.map(user => ({
+      _id: user._id,
+      role: user.role,
+      full_name: user.personal_info_step1?.full_name,
+      city: user.personal_info_step1?.city,
+      state: user.personal_info_step1?.state,
+      country: user.personal_info_step2?.country,
+      job_title: user.company_info?.job_title,
+      profile_photo: user.profile_photo,
+    }));
+  }
+
   formatUserProfile(user) {
     return {
       id: user._id,

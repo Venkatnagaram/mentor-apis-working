@@ -17,6 +17,12 @@ router.put(
 );
 
 router.get(
+  "/list/by-role",
+  verifyToken,
+  userController.getUsersByRole
+);
+
+router.get(
   "/:userId",
   verifyToken,
   userController.getUserById
