@@ -161,7 +161,13 @@ Authorization: Bearer <token>
         "mentee_id": {
           "_id": "mentee_id_456",
           "personal_info_step1": {
-            "full_name": "Jane Mentee"
+            "full_name": "Jane Mentee",
+            "city": "San Francisco",
+            "state": "California"
+          },
+          "personal_info_step2": {
+            "country": "United States",
+            "timezone": "America/Los_Angeles"
           },
           "profile_photo": "https://...",
           "role": "mentee"
@@ -169,7 +175,13 @@ Authorization: Bearer <token>
         "mentor_id": {
           "_id": "mentor_id_123",
           "personal_info_step1": {
-            "full_name": "John Mentor"
+            "full_name": "John Mentor",
+            "city": "New York",
+            "state": "New York"
+          },
+          "personal_info_step2": {
+            "country": "United States",
+            "timezone": "America/New_York"
           },
           "profile_photo": "https://...",
           "role": "mentor"

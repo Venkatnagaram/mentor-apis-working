@@ -254,7 +254,14 @@ Retrieve all accepted connections for the authenticated user (works for both men
           "phone": "1234567890",
           "role": "mentee",
           "personal_info_step1": {
-            "full_name": "John Doe"
+            "full_name": "John Doe",
+            "city": "San Francisco",
+            "state": "California"
+          },
+          "personal_info_step2": {
+            "country": "United States",
+            "timezone": "America/Los_Angeles",
+            "bio": "Aspiring product manager..."
           },
           "profile_photo": "url_to_photo"
         },
@@ -264,7 +271,14 @@ Retrieve all accepted connections for the authenticated user (works for both men
           "phone": "9876543210",
           "role": "mentor",
           "personal_info_step1": {
-            "full_name": "Jane Smith"
+            "full_name": "Jane Smith",
+            "city": "New York",
+            "state": "New York"
+          },
+          "personal_info_step2": {
+            "country": "United States",
+            "timezone": "America/New_York",
+            "bio": "Senior product manager..."
           },
           "profile_photo": "url_to_photo"
         },
