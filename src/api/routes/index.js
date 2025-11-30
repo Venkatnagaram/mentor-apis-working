@@ -6,11 +6,13 @@ const authRoutes = require("./auth.routes");
 const onboardingRoutes = require("./onboarding.routes");
 const userRoutes = require("./user.routes");
 const connectionRoutes = require("./connection.routes");
+const messageRoutes = require("./message.routes");
 
 // Mount routes with prefixes
 router.use("/auth", authRoutes);
 router.use("/onboarding", onboardingRoutes);
 router.use("/users", userRoutes);
 router.use("/connections", connectionRoutes);
+router.use("/messages", messageRoutes);
 
 module.exports = router;
