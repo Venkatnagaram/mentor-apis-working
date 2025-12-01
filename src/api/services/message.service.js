@@ -4,7 +4,7 @@ const contentModeration = require("../../utils/contentModeration");
 
 class MessageService {
   async sendMessage(senderId, connectionId, messageText) {
-    const connection = await connectionRepo.findById(connectionId);
+    const connection = await connectionRepo.findConnectionById(connectionId);
 
     if (!connection) {
       throw new Error("Connection not found");
@@ -46,7 +46,7 @@ class MessageService {
   }
 
   async getConversationMessages(userId, connectionId, page = 1, limit = 50) {
-    const connection = await connectionRepo.findById(connectionId);
+    const connection = await connectionRepo.findConnectionById(connectionId);
 
     if (!connection) {
       throw new Error("Connection not found");
@@ -67,7 +67,7 @@ class MessageService {
   }
 
   async markMessagesAsRead(userId, connectionId) {
-    const connection = await connectionRepo.findById(connectionId);
+    const connection = await connectionRepo.findConnectionById(connectionId);
 
     if (!connection) {
       throw new Error("Connection not found");
@@ -97,7 +97,7 @@ class MessageService {
 
     const populatedConversations = await Promise.all(
       conversations.map(async (conv) => {
-        const connection = await connectionRepo.findById(conv._id);
+        const connection = await connectionRepo.findConnectionById(conv._id);
 
         if (!connection) return null;
 
