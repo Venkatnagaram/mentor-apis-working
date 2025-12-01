@@ -15,8 +15,8 @@ class MessageService {
     }
 
     const isSenderInConnection =
-      connection.mentee_id.toString() === senderId.toString() ||
-      connection.mentor_id.toString() === senderId.toString();
+      connection.mentee_id._id.toString() === senderId.toString() ||
+      connection.mentor_id._id.toString() === senderId.toString();
 
     if (!isSenderInConnection) {
       throw new Error("You are not part of this connection");
@@ -29,9 +29,9 @@ class MessageService {
     }
 
     const receiverId =
-      connection.mentee_id.toString() === senderId.toString()
-        ? connection.mentor_id
-        : connection.mentee_id;
+      connection.mentee_id._id.toString() === senderId.toString()
+        ? connection.mentor_id._id
+        : connection.mentee_id._id;
 
     const messageData = {
       connection_id: connectionId,
@@ -53,8 +53,8 @@ class MessageService {
     }
 
     const isUserInConnection =
-      connection.mentee_id.toString() === userId.toString() ||
-      connection.mentor_id.toString() === userId.toString();
+      connection.mentee_id._id.toString() === userId.toString() ||
+      connection.mentor_id._id.toString() === userId.toString();
 
     if (!isUserInConnection) {
       throw new Error("You are not part of this connection");
@@ -74,8 +74,8 @@ class MessageService {
     }
 
     const isUserInConnection =
-      connection.mentee_id.toString() === userId.toString() ||
-      connection.mentor_id.toString() === userId.toString();
+      connection.mentee_id._id.toString() === userId.toString() ||
+      connection.mentor_id._id.toString() === userId.toString();
 
     if (!isUserInConnection) {
       throw new Error("You are not part of this connection");
@@ -102,7 +102,7 @@ class MessageService {
         if (!connection) return null;
 
         const otherUserId =
-          connection.mentee_id.toString() === userId.toString()
+          connection.mentee_id._id.toString() === userId.toString()
             ? connection.mentor_id
             : connection.mentee_id;
 
