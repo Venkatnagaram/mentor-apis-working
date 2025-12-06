@@ -1,4 +1,5 @@
 const Message = require("../models/Message");
+const mongoose = require("mongoose");
 
 class MessageRepository {
   async createMessage(data) {
@@ -89,10 +90,13 @@ class MessageRepository {
   }
 
   async getConversationList(userId) {
+    // Convert userId to ObjectId for aggregation pipeline
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+
     const messages = await Message.aggregate([
       {
         $match: {
-          $or: [{ sender_id: userId }, { receiver_id: userId }],
+          $or: [{ sender_id: userObjectId }, { receiver_id: userObjectId }],
         },
       },
       { $sort: { createdAt: -1 } },
@@ -103,7 +107,7 @@ class MessageRepository {
           unreadCount: {
             $sum: {
               $cond: [
-                { $and: [{ $eq: ["$receiver_id", userId] }, { $eq: ["$is_read", false] }] },
+                { $and: [{ $eq: ["$receiver_id", userObjectId] }, { $eq: ["$is_read", false] }] },
                 1,
                 0,
               ],
