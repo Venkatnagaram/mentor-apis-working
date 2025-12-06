@@ -2,9 +2,13 @@
 
 ## Issue Summary
 
-**Error:** `"You are not part of this connection"`
+**Issues Fixed:**
+1. `"You are not part of this connection"` - Connection validation error
+2. Inconsistent `sender_id` and `receiver_id` format in message responses
 
-**Root Cause:** When comparing populated Mongoose fields, the code was comparing the entire populated object instead of just the `_id` field.
+**Root Causes:**
+1. When comparing populated Mongoose fields, the code was comparing the entire populated object instead of just the `_id` field
+2. Incorrect field selection in message populate queries causing `_id` to be excluded from responses
 
 ---
 
@@ -330,21 +334,151 @@ somePopulatedField._id.toString() === userId
 
 ## Summary
 
-### The Root Cause
-Comparing populated Mongoose objects directly instead of accessing the `_id` field first.
+### Issues Fixed
 
-### The Solution
-Always use `._id.toString()` when comparing populated fields with ObjectIds.
+#### Issue 1: Connection Validation Error
+**Root Cause:** Comparing populated Mongoose objects directly instead of accessing the `_id` field first.
 
-### Affected Methods (All Fixed)
+**Solution:** Always use `._id.toString()` when comparing populated fields with ObjectIds.
+
+**Affected Methods (All Fixed):**
 1. ✅ `sendMessage()` - comparison and receiver ID assignment
 2. ✅ `getConversationMessages()` - user validation
 3. ✅ `markMessagesAsRead()` - user validation
 4. ✅ `getConversationList()` - other user determination
 
-### Impact
+**Impact:**
 - **Before:** All messaging operations failed with "You are not part of this connection"
 - **After:** Messaging works correctly for all valid connections
+
+#### Issue 2: Inconsistent Message sender_id Format
+**Root Cause:** Incorrect field selection in populate queries using dot notation for nested fields.
+
+**Solution:** Select the entire parent object instead of trying to use dot notation in the field selection string.
+
+**Affected Methods (All Fixed):**
+1. ✅ `findMessageById()` - populate sender_id and receiver_id
+2. ✅ `getMessagesByConnection()` - populate sender_id and receiver_id
+
+**Impact:**
+- **Before:** `sender_id` format was unpredictable, frontend couldn't match messages to users
+- **After:** Consistent `sender_id` structure with `_id` always present, message UI renders correctly
+
+---
+
+## Additional Fix: Message Populate Query
+
+### Issue 2: Inconsistent sender_id Format
+
+**Problem:** Message responses were returning inconsistent `sender_id` and `receiver_id` formats:
+- Sometimes: `"sender_id": { "$oid": "0aeb409c9998463383afcd25" }`
+- Sometimes: `"sender_id": "0aeb409c9998463383afcd25"`
+- Sometimes: `"sender_id": null`
+
+**Root Cause:** The populate query was trying to select nested fields incorrectly:
+
+```javascript
+// ❌ WRONG - Mongoose doesn't understand nested path selection this way
+.populate('sender_id', 'personal_info_step1.full_name profile_photo role')
+```
+
+When you use `personal_info_step1.full_name`, Mongoose tries to find a field literally named `"personal_info_step1.full_name"` instead of understanding it as a nested path. This causes the populate to fail silently, and the `_id` field is excluded.
+
+### The Fix
+
+**File:** `src/api/repositories/message.repository.js`
+
+**Changed Methods:**
+
+#### 1. `findMessageById()` (Line 10-15)
+```javascript
+// Before ❌
+async findMessageById(messageId) {
+  return await Message.findById(messageId)
+    .populate('sender_id', 'personal_info_step1.full_name profile_photo role')
+    .populate('receiver_id', 'personal_info_step1.full_name profile_photo role')
+    .lean();
+}
+
+// After ✅
+async findMessageById(messageId) {
+  return await Message.findById(messageId)
+    .populate('sender_id', '_id personal_info_step1 profile_photo role')
+    .populate('receiver_id', '_id personal_info_step1 profile_photo role')
+    .lean();
+}
+```
+
+#### 2. `getMessagesByConnection()` (Line 17-25)
+```javascript
+// Before ❌
+async getMessagesByConnection(connectionId, limit = 50, skip = 0) {
+  return await Message.find({ connection_id: connectionId })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(skip)
+    .populate('sender_id', 'personal_info_step1.full_name profile_photo role')
+    .populate('receiver_id', 'personal_info_step1.full_name profile_photo role')
+    .lean();
+}
+
+// After ✅
+async getMessagesByConnection(connectionId, limit = 50, skip = 0) {
+  return await Message.find({ connection_id: connectionId })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(skip)
+    .populate('sender_id', '_id personal_info_step1 profile_photo role')
+    .populate('receiver_id', '_id personal_info_step1 profile_photo role')
+    .lean();
+}
+```
+
+### Why This Works
+
+**Correct Field Selection:**
+- `'_id personal_info_step1 profile_photo role'` - Select the entire `personal_info_step1` object
+- The frontend can then access `sender_id.personal_info_step1.full_name`
+
+**Consistent Response Format:**
+```json
+{
+  "_id": "507f1f77bcf86cd799439012",
+  "sender_id": {
+    "_id": "0aeb409c9998463383afcd25",
+    "personal_info_step1": {
+      "full_name": "Jane Mentee",
+      "city": "San Francisco",
+      "state": "California"
+    },
+    "profile_photo": "https://example.com/photo.jpg",
+    "role": "mentee"
+  },
+  "receiver_id": {
+    "_id": "507f191e810c19729de860ea",
+    "personal_info_step1": {
+      "full_name": "John Mentor"
+    },
+    "profile_photo": "https://example.com/photo.jpg",
+    "role": "mentor"
+  },
+  "message_text": "I am good",
+  "is_read": false,
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
+
+### Impact
+
+**Before:**
+- Frontend couldn't reliably match messages to senders
+- `sender_id` format was unpredictable
+- Message bubbles might not show correctly
+
+**After:**
+- Consistent `sender_id` structure in all responses
+- Frontend can reliably access `sender_id._id` and `sender_id.personal_info_step1.full_name`
+- Message UI renders correctly
 
 ---
 

@@ -9,8 +9,8 @@ class MessageRepository {
 
   async findMessageById(messageId) {
     return await Message.findById(messageId)
-      .populate('sender_id', 'personal_info_step1.full_name profile_photo role')
-      .populate('receiver_id', 'personal_info_step1.full_name profile_photo role')
+      .populate('sender_id', '_id personal_info_step1 profile_photo role')
+      .populate('receiver_id', '_id personal_info_step1 profile_photo role')
       .lean();
   }
 
@@ -19,8 +19,8 @@ class MessageRepository {
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip(skip)
-      .populate('sender_id', 'personal_info_step1.full_name profile_photo role')
-      .populate('receiver_id', 'personal_info_step1.full_name profile_photo role')
+      .populate('sender_id', '_id personal_info_step1 profile_photo role')
+      .populate('receiver_id', '_id personal_info_step1 profile_photo role')
       .lean();
   }
 
