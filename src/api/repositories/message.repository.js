@@ -14,12 +14,25 @@ class MessageRepository {
       .lean();
 
     if (message) {
-      // Keep the IDs as strings for easy comparison in frontend
-      const senderDetails = message.sender_id;
-      const receiverDetails = message.receiver_id;
+      let senderDetails = null;
+      let receiverDetails = null;
 
-      message.sender_id = senderDetails?._id?.toString() || message.sender_id;
-      message.receiver_id = receiverDetails?._id?.toString() || message.receiver_id;
+      // If populated → it's an object with _id
+      if (message.sender_id && typeof message.sender_id === "object" && message.sender_id._id) {
+        senderDetails = message.sender_id;
+        message.sender_id = message.sender_id._id.toString();
+      } else if (message.sender_id) {
+        // If not populated → leave it as a string
+        message.sender_id = message.sender_id.toString();
+      }
+
+      if (message.receiver_id && typeof message.receiver_id === "object" && message.receiver_id._id) {
+        receiverDetails = message.receiver_id;
+        message.receiver_id = message.receiver_id._id.toString();
+      } else if (message.receiver_id) {
+        message.receiver_id = message.receiver_id.toString();
+      }
+
       message.sender = senderDetails;
       message.receiver = receiverDetails;
     }
@@ -38,13 +51,27 @@ class MessageRepository {
 
     // Transform messages to have both ID strings and populated objects
     return messages.map(message => {
-      const senderDetails = message.sender_id;
-      const receiverDetails = message.receiver_id;
+      let senderDetails = null;
+      let receiverDetails = null;
+
+      // If populated → it's an object with _id
+      if (message.sender_id && typeof message.sender_id === "object" && message.sender_id._id) {
+        senderDetails = message.sender_id;
+        message.sender_id = message.sender_id._id.toString();
+      } else if (message.sender_id) {
+        // If not populated → leave it as a string
+        message.sender_id = message.sender_id.toString();
+      }
+
+      if (message.receiver_id && typeof message.receiver_id === "object" && message.receiver_id._id) {
+        receiverDetails = message.receiver_id;
+        message.receiver_id = message.receiver_id._id.toString();
+      } else if (message.receiver_id) {
+        message.receiver_id = message.receiver_id.toString();
+      }
 
       return {
         ...message,
-        sender_id: senderDetails?._id?.toString() || message.sender_id,
-        receiver_id: receiverDetails?._id?.toString() || message.receiver_id,
         sender: senderDetails,
         receiver: receiverDetails
       };
