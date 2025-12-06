@@ -92,9 +92,11 @@ exports.getUnreadCount = async (req, res, next) => {
     }
 
     const count = await messageService.getUnreadCount(req.user.id);
+    const messages = await messageService.getUnreadMessagesList(req.user.id);
 
-    return successResponse(res, "Unread count retrieved successfully", {
+    return successResponse(res, "Unread messages retrieved successfully", {
       unread_count: count,
+      messages,
     });
   } catch (err) {
     next(err);

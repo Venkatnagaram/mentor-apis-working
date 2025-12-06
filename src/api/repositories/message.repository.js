@@ -82,6 +82,33 @@ class MessageRepository {
     });
   }
 
+  async getUnreadMessagesList(userId) {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    const unreadMessages = await Message.aggregate([
+      {
+        $match: {
+          receiver_id: userObjectId,
+          is_read: false,
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: {
+            connection_id: "$connection_id",
+            sender_id: "$sender_id",
+          },
+          lastUnreadMessage: { $first: "$$ROOT" },
+          unreadCount: { $sum: 1 },
+        },
+      },
+      { $sort: { "lastUnreadMessage.createdAt": -1 } },
+    ]);
+
+    return unreadMessages;
+  }
+
   async deleteMessage(messageId, userId) {
     return await Message.findOneAndDelete({
       _id: messageId,

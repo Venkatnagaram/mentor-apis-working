@@ -92,6 +92,54 @@ class MessageService {
     return await messageRepo.getUnreadCount(userId);
   }
 
+  async getUnreadMessagesList(userId) {
+    const unreadMessages = await messageRepo.getUnreadMessagesList(userId);
+    const userRepo = require("../repositories/user.repository");
+
+    const populatedMessages = await Promise.all(
+      unreadMessages.map(async (msg) => {
+        const sender = await userRepo.findById(msg._id.sender_id.toString());
+
+        if (!sender) return null;
+
+        const timeDiff = Date.now() - new Date(msg.lastUnreadMessage.createdAt).getTime();
+        const minutesAgo = Math.floor(timeDiff / 60000);
+        const timeAgo = minutesAgo < 60
+          ? `${minutesAgo} min`
+          : minutesAgo < 1440
+          ? `${Math.floor(minutesAgo / 60)} hr`
+          : `${Math.floor(minutesAgo / 1440)} day`;
+
+        return {
+          connection_id: msg._id.connection_id,
+          sender: {
+            _id: sender._id,
+            full_name: sender.personal_info_step1?.full_name || "Unknown",
+            profile_photo: sender.profile_photo,
+            role: sender.role,
+            title: sender.professional_info_step3?.title || "",
+            location: [
+              sender.personal_info_step2?.city,
+              sender.personal_info_step2?.state,
+              sender.personal_info_step2?.country,
+            ]
+              .filter(Boolean)
+              .join(", "),
+          },
+          last_message: {
+            _id: msg.lastUnreadMessage._id,
+            message_text: msg.lastUnreadMessage.message_text,
+            createdAt: msg.lastUnreadMessage.createdAt,
+            time_ago: timeAgo,
+          },
+          unread_count: msg.unreadCount,
+        };
+      })
+    );
+
+    return populatedMessages.filter((msg) => msg !== null);
+  }
+
   async getConversationList(userId) {
     const conversations = await messageRepo.getConversationList(userId);
 
