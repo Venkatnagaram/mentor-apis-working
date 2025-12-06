@@ -112,7 +112,9 @@ Content-Type: application/json
   "data": {
     "_id": "507f1f77bcf86cd799439012",
     "connection_id": "507f1f77bcf86cd799439011",
-    "sender_id": {
+    "sender_id": "507f191e810c19729de860eb",
+    "receiver_id": "507f191e810c19729de860ea",
+    "sender": {
       "_id": "507f191e810c19729de860eb",
       "personal_info_step1": {
         "full_name": "Jane Mentee"
@@ -120,7 +122,7 @@ Content-Type: application/json
       "profile_photo": "https://example.com/photo.jpg",
       "role": "mentee"
     },
-    "receiver_id": {
+    "receiver": {
       "_id": "507f191e810c19729de860ea",
       "personal_info_step1": {
         "full_name": "John Mentor"
@@ -136,6 +138,8 @@ Content-Type: application/json
   }
 }
 ```
+
+**Note:** The response includes both ID strings (`sender_id`, `receiver_id`) for easy comparison and populated objects (`sender`, `receiver`) for display.
 
 **Possible Errors:**
 - `404`: Connection not found
@@ -176,7 +180,9 @@ GET /api/messages/conversation/507f1f77bcf86cd799439011?page=1&limit=50
       {
         "_id": "507f1f77bcf86cd799439012",
         "connection_id": "507f1f77bcf86cd799439011",
-        "sender_id": {
+        "sender_id": "507f191e810c19729de860eb",
+        "receiver_id": "507f191e810c19729de860ea",
+        "sender": {
           "_id": "507f191e810c19729de860eb",
           "personal_info_step1": {
             "full_name": "Jane Mentee"
@@ -184,7 +190,7 @@ GET /api/messages/conversation/507f1f77bcf86cd799439011?page=1&limit=50
           "profile_photo": "https://example.com/photo.jpg",
           "role": "mentee"
         },
-        "receiver_id": {
+        "receiver": {
           "_id": "507f191e810c19729de860ea",
           "personal_info_step1": {
             "full_name": "John Mentor"
@@ -203,7 +209,9 @@ GET /api/messages/conversation/507f1f77bcf86cd799439011?page=1&limit=50
 }
 ```
 
-**Note:** Messages are returned in chronological order (oldest to newest).
+**Note:**
+- Messages are returned in chronological order (oldest to newest)
+- Each message includes both ID strings (`sender_id`, `receiver_id`) for comparison and populated objects (`sender`, `receiver`) for display
 
 ---
 

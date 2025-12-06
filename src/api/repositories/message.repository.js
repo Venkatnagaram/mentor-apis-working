@@ -8,20 +8,47 @@ class MessageRepository {
   }
 
   async findMessageById(messageId) {
-    return await Message.findById(messageId)
+    const message = await Message.findById(messageId)
       .populate('sender_id', '_id personal_info_step1 profile_photo role')
       .populate('receiver_id', '_id personal_info_step1 profile_photo role')
       .lean();
+
+    if (message) {
+      // Keep the IDs as strings for easy comparison in frontend
+      const senderDetails = message.sender_id;
+      const receiverDetails = message.receiver_id;
+
+      message.sender_id = senderDetails?._id?.toString() || message.sender_id;
+      message.receiver_id = receiverDetails?._id?.toString() || message.receiver_id;
+      message.sender = senderDetails;
+      message.receiver = receiverDetails;
+    }
+
+    return message;
   }
 
   async getMessagesByConnection(connectionId, limit = 50, skip = 0) {
-    return await Message.find({ connection_id: connectionId })
+    const messages = await Message.find({ connection_id: connectionId })
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip(skip)
       .populate('sender_id', '_id personal_info_step1 profile_photo role')
       .populate('receiver_id', '_id personal_info_step1 profile_photo role')
       .lean();
+
+    // Transform messages to have both ID strings and populated objects
+    return messages.map(message => {
+      const senderDetails = message.sender_id;
+      const receiverDetails = message.receiver_id;
+
+      return {
+        ...message,
+        sender_id: senderDetails?._id?.toString() || message.sender_id,
+        receiver_id: receiverDetails?._id?.toString() || message.receiver_id,
+        sender: senderDetails,
+        receiver: receiverDetails
+      };
+    });
   }
 
   async markAsRead(messageId, userId) {
