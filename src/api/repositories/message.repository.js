@@ -7,37 +7,44 @@ class MessageRepository {
     return message.toObject();
   }
 
-  async findMessageById(messageId) {
-    const message = await Message.findById(messageId)
-      .populate('sender_id', '_id personal_info_step1 profile_photo role')
-      .populate('receiver_id', '_id personal_info_step1 profile_photo role')
-      .lean();
+  /**
+   * Normalize sender/receiver output for frontend
+   */
+  normalizeMessage(message) {
+    if (!message) return null;
 
-    if (message) {
-      let senderDetails = null;
-      let receiverDetails = null;
+    let senderDetails = null;
+    let receiverDetails = null;
 
-      // If populated → it's an object with _id
-      if (message.sender_id && typeof message.sender_id === "object" && message.sender_id._id) {
-        senderDetails = message.sender_id;
-        message.sender_id = message.sender_id._id.toString();
-      } else if (message.sender_id) {
-        // If not populated → leave it as a string
-        message.sender_id = message.sender_id.toString();
-      }
-
-      if (message.receiver_id && typeof message.receiver_id === "object" && message.receiver_id._id) {
-        receiverDetails = message.receiver_id;
-        message.receiver_id = message.receiver_id._id.toString();
-      } else if (message.receiver_id) {
-        message.receiver_id = message.receiver_id.toString();
-      }
-
-      message.sender = senderDetails;
-      message.receiver = receiverDetails;
+    // --- Normalize sender_id ---
+    if (message.sender_id && typeof message.sender_id === "object" && message.sender_id._id) {
+      senderDetails = message.sender_id;
+      message.sender_id = message.sender_id._id.toString();
+    } else {
+      message.sender_id = message.sender_id?.toString();
     }
 
+    // --- Normalize receiver_id ---
+    if (message.receiver_id && typeof message.receiver_id === "object" && message.receiver_id._id) {
+      receiverDetails = message.receiver_id;
+      message.receiver_id = message.receiver_id._id.toString();
+    } else {
+      message.receiver_id = message.receiver_id?.toString();
+    }
+
+    message.sender = senderDetails;
+    message.receiver = receiverDetails;
+
     return message;
+  }
+
+  async findMessageById(messageId) {
+    const message = await Message.findById(messageId)
+      .populate("sender_id", "_id personal_info_step1 profile_photo role")
+      .populate("receiver_id", "_id personal_info_step1 profile_photo role")
+      .lean();
+
+    return this.normalizeMessage(message);
   }
 
   async getMessagesByConnection(connectionId, limit = 50, skip = 0) {
@@ -45,37 +52,11 @@ class MessageRepository {
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip(skip)
-      .populate('sender_id', '_id personal_info_step1 profile_photo role')
-      .populate('receiver_id', '_id personal_info_step1 profile_photo role')
+      .populate("sender_id", "_id personal_info_step1 profile_photo role")
+      .populate("receiver_id", "_id personal_info_step1 profile_photo role")
       .lean();
 
-    // Transform messages to have both ID strings and populated objects
-    return messages.map(message => {
-      let senderDetails = null;
-      let receiverDetails = null;
-
-      // If populated → it's an object with _id
-      if (message.sender_id && typeof message.sender_id === "object" && message.sender_id._id) {
-        senderDetails = message.sender_id;
-        message.sender_id = message.sender_id._id.toString();
-      } else if (message.sender_id) {
-        // If not populated → leave it as a string
-        message.sender_id = message.sender_id.toString();
-      }
-
-      if (message.receiver_id && typeof message.receiver_id === "object" && message.receiver_id._id) {
-        receiverDetails = message.receiver_id;
-        message.receiver_id = message.receiver_id._id.toString();
-      } else if (message.receiver_id) {
-        message.receiver_id = message.receiver_id.toString();
-      }
-
-      return {
-        ...message,
-        sender: senderDetails,
-        receiver: receiverDetails
-      };
-    });
+    return messages.map(msg => this.normalizeMessage(msg));
   }
 
   async markAsRead(messageId, userId) {
@@ -100,27 +81,11 @@ class MessageRepository {
     });
   }
 
-  async getUnreadCountByConnection(connectionId, userId) {
-    return await Message.countDocuments({
-      connection_id: connectionId,
-      receiver_id: userId,
-      is_read: false,
-    });
-  }
-
   async deleteMessage(messageId, userId) {
     return await Message.findOneAndDelete({
       _id: messageId,
       sender_id: userId,
     }).lean();
-  }
-
-  async flagMessage(messageId, reason) {
-    return await Message.findByIdAndUpdate(
-      messageId,
-      { is_flagged: true, flagged_reason: reason },
-      { new: true }
-    ).lean();
   }
 
   async getConversationList(userId) {
@@ -130,22 +95,15 @@ class MessageRepository {
           $or: [{ sender_id: userId }, { receiver_id: userId }],
         },
       },
-      {
-        $sort: { createdAt: -1 },
-      },
+      { $sort: { createdAt: -1 } },
       {
         $group: {
-          _id: '$connection_id',
-          lastMessage: { $first: '$$ROOT' },
+          _id: "$connection_id",
+          lastMessage: { $first: "$$ROOT" },
           unreadCount: {
             $sum: {
               $cond: [
-                {
-                  $and: [
-                    { $eq: ['$receiver_id', userId] },
-                    { $eq: ['$is_read', false] },
-                  ],
-                },
+                { $and: [{ $eq: ["$receiver_id", userId] }, { $eq: ["$is_read", false] }] },
                 1,
                 0,
               ],
