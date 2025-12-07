@@ -59,9 +59,10 @@ async function generateAvailableSlotsForUser(userId, startDate, endDate, options
   const results = [];
 
   // iterate each day in the date range
-  for (let day = new Date(start); day <= end; day.setDate(day.getDate() + 1)) {
-    const dateCopy = new Date(day);
-    const weekday = dateCopy.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase().slice(0,3); // e.g., "mon"
+  let currentDay = new Date(start);
+  while (currentDay <= end) {
+    const dateCopy = new Date(currentDay);
+    const weekday = dateCopy.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase().slice(0,3);
     const dateMatches = [];
 
     for (const av of avList) {
@@ -122,7 +123,9 @@ async function generateAvailableSlotsForUser(userId, startDate, endDate, options
         end: s.end.toISOString(),
       });
     }
-  } // days loop
+
+    currentDay.setDate(currentDay.getDate() + 1);
+  }
 
   return results;
 }
