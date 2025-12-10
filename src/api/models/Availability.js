@@ -3,7 +3,17 @@ const mongoose = require("mongoose");
 const timeRangeSchema = new mongoose.Schema({
   from: { type: String, required: true }, // "09:00"
   to: { type: String, required: true },   // "17:30"
-});
+}, { _id: false });
+
+const dateRangeSchema = new mongoose.Schema({
+  start_date: Date, // inclusive
+  end_date: Date,   // inclusive (optional for single)
+  dates: [Date],    // for single_dates type
+  time_ranges: {
+    type: [timeRangeSchema],
+    default: [],
+  },
+}, { _id: false });
 
 const availabilitySchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
@@ -21,14 +31,10 @@ const availabilitySchema = new mongoose.Schema({
   },
 
   // for date_range / single_dates
-  date_ranges: [
-    {
-      start_date: Date, // inclusive
-      end_date: Date,   // inclusive (optional for single)
-      dates: [Date],    // for single_dates type
-      time_ranges: [timeRangeSchema],
-    },
-  ],
+  date_ranges: {
+    type: [dateRangeSchema],
+    default: [],
+  },
 
   slot_duration_minutes: { type: Number, default: 30 }, // e.g., 30
 

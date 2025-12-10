@@ -8,7 +8,12 @@ class AvailabilityRepository {
   }
 
   async update(id, data) {
-    return await Availability.findByIdAndUpdate(id, { ...data, updatedAt: new Date() }, { new: true }).lean();
+    const updateData = { ...data, updatedAt: new Date() };
+    return await Availability.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    ).lean();
   }
 
   async delete(id) {

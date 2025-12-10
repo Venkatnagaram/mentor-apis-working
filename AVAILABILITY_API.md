@@ -204,12 +204,59 @@ Update an existing availability schedule. Users can only update their own availa
 
 Any fields from the create endpoint can be updated:
 
+**Example 1: Update basic fields**
 ```json
 {
   "active": false,
   "slot_duration_minutes": 45,
   "time_ranges": [
     { "from": "10:00", "to": "16:00" }
+  ]
+}
+```
+
+**Example 2: Update date_ranges with nested time_ranges**
+
+When updating `date_ranges`, you MUST include the complete nested structure with `time_ranges`:
+
+```json
+{
+  "date_ranges": [
+    {
+      "start_date": "2025-12-15",
+      "end_date": "2026-01-15",
+      "time_ranges": [
+        { "from": "14:00", "to": "17:00" }
+      ]
+    }
+  ]
+}
+```
+
+**Important Notes:**
+- When updating `date_ranges`, ALWAYS include the nested `time_ranges` array
+- The entire `date_ranges` array is replaced, not merged
+- Each date range object must have its own `time_ranges` array
+- Empty `time_ranges` arrays will result in no slots being generated for that date range
+
+**Example 3: Update multiple date ranges**
+```json
+{
+  "date_ranges": [
+    {
+      "start_date": "2025-12-15",
+      "end_date": "2025-12-31",
+      "time_ranges": [
+        { "from": "09:00", "to": "12:00" }
+      ]
+    },
+    {
+      "start_date": "2026-01-01",
+      "end_date": "2026-01-15",
+      "time_ranges": [
+        { "from": "14:00", "to": "17:00" }
+      ]
+    }
   ]
 }
 ```
@@ -224,6 +271,18 @@ Any fields from the create endpoint can be updated:
     "_id": "65f1a2b3c4d5e6f7g8h9i0j1",
     "active": false,
     "slot_duration_minutes": 45,
+    "date_ranges": [
+      {
+        "start_date": "2025-12-15T00:00:00.000Z",
+        "end_date": "2026-01-15T00:00:00.000Z",
+        "time_ranges": [
+          {
+            "from": "14:00",
+            "to": "17:00"
+          }
+        ]
+      }
+    ],
     "updatedAt": "2024-03-15T11:00:00.000Z"
   }
 }
@@ -233,6 +292,7 @@ Any fields from the create endpoint can be updated:
 
 - **404 Not Found**: Availability not found
 - **403 Forbidden**: User doesn't own this availability
+- **400 Bad Request**: Validation error (e.g., missing time_ranges in date_ranges)
 
 ---
 
