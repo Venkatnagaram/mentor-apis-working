@@ -61,6 +61,33 @@ Create a new availability schedule for the authenticated mentor.
 }
 ```
 
+##### Weekly Recurring with Date Ranges (Advanced)
+You can optionally add `date_ranges` to weekly availability to specify additional time slots for specific date ranges:
+
+```json
+{
+  "type": "weekly",
+  "days": ["mon", "wed", "fri"],
+  "time_ranges": [
+    { "from": "09:00", "to": "12:00" }
+  ],
+  "date_ranges": [
+    {
+      "start_date": "2025-12-15",
+      "end_date": "2026-01-15",
+      "time_ranges": [
+        { "from": "14:00", "to": "17:00" }
+      ]
+    }
+  ],
+  "slot_duration_minutes": 30
+}
+```
+
+This example generates:
+- Monday/Wednesday/Friday slots from 09:00-12:00 (regular weekly pattern)
+- PLUS additional Monday/Wednesday/Friday slots from 14:00-17:00 only between Dec 15, 2025 - Jan 15, 2026
+
 ##### Date Range
 ```json
 {
@@ -102,7 +129,10 @@ Create a new availability schedule for the authenticated mentor.
 | slot_duration_minutes | integer | No | 15-180 minutes (default: 60) |
 | days | array | Conditional | Required for "weekly" type. Valid values: "mon", "tue", "wed", "thu", "fri", "sat", "sun" |
 | time_ranges | array | Conditional | Required for "weekly" type. Each range must have "from" and "to" in HH:mm format |
-| date_ranges | array | Conditional | Required for "date_range" and "single_dates" types |
+| date_ranges | array | Conditional | Required for "date_range" and "single_dates" types. Optional for "weekly" type (for date-specific overrides) |
+| date_ranges[].start_date | ISO 8601 date | Conditional | Required when date_ranges is used |
+| date_ranges[].end_date | ISO 8601 date | No | Optional. Must be after start_date if provided |
+| date_ranges[].time_ranges | array | Conditional | Required for "date_range" and "single_dates". Optional for "weekly" with date_ranges |
 | valid_from | ISO 8601 date | No | Start date for this availability |
 | valid_to | ISO 8601 date | No | End date (must be after valid_from) |
 

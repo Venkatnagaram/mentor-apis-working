@@ -169,6 +169,10 @@ exports.updateAvailabilityValidation = [
 
   body("time_ranges").optional().custom(validateTimeRange),
 
+  body("date_ranges")
+    .optional()
+    .custom(validateDateRanges),
+
   body("active")
     .optional()
     .isBoolean()
