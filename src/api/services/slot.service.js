@@ -184,40 +184,53 @@ async function generateGroupedSlotsForUser(userId, startDate, endDate) {
 
       let daySlots = [];
 
-      if (av.type === "weekly") {
-        if (av.days && av.days.includes(weekday)) {
-          const ranges = av.time_ranges || [];
-          for (const r of ranges) {
-            const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
-            daySlots.push(...slots);
-          }
+      if (av.type === "weekly" && av.days && av.days.includes(weekday)) {
+        const ranges = av.time_ranges || [];
+        for (const r of ranges) {
+          const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
+          daySlots.push(...slots);
         }
-      } else if (av.type === "date_range") {
-        for (const dr of av.date_ranges || []) {
-          const startRangeDate = new Date(dr.start_date);
-          startRangeDate.setHours(0, 0, 0, 0);
-          const endRangeDate = dr.end_date ? new Date(dr.end_date) : new Date(dr.start_date);
-          endRangeDate.setHours(23, 59, 59, 999);
+      }
 
-          if (dateCopy >= startRangeDate && dateCopy <= endRangeDate) {
-            const ranges = dr.time_ranges || [];
-            for (const r of ranges) {
-              const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
-              daySlots.push(...slots);
+      if (av.date_ranges && av.date_ranges.length > 0) {
+        for (const dr of av.date_ranges) {
+          if (av.type === "date_range") {
+            const startRangeDate = new Date(dr.start_date);
+            startRangeDate.setHours(0, 0, 0, 0);
+            const endRangeDate = dr.end_date ? new Date(dr.end_date) : new Date(dr.start_date);
+            endRangeDate.setHours(23, 59, 59, 999);
+
+            if (dateCopy >= startRangeDate && dateCopy <= endRangeDate) {
+              const ranges = dr.time_ranges || [];
+              for (const r of ranges) {
+                const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
+                daySlots.push(...slots);
+              }
             }
-          }
-        }
-      } else if (av.type === "single_dates") {
-        for (const dr of av.date_ranges || []) {
-          const found = (dr.dates || []).some(d => {
-            const singleDate = new Date(d);
-            return singleDate.toISOString().split('T')[0] === dateOnlyStr;
-          });
-          if (found) {
-            const ranges = dr.time_ranges || [];
-            for (const r of ranges) {
-              const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
-              daySlots.push(...slots);
+          } else if (av.type === "single_dates") {
+            const found = (dr.dates || []).some(d => {
+              const singleDate = new Date(d);
+              return singleDate.toISOString().split('T')[0] === dateOnlyStr;
+            });
+            if (found) {
+              const ranges = dr.time_ranges || [];
+              for (const r of ranges) {
+                const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
+                daySlots.push(...slots);
+              }
+            }
+          } else if (av.type === "weekly" && dr.start_date) {
+            const startRangeDate = new Date(dr.start_date);
+            startRangeDate.setHours(0, 0, 0, 0);
+            const endRangeDate = dr.end_date ? new Date(dr.end_date) : new Date(dr.start_date);
+            endRangeDate.setHours(23, 59, 59, 999);
+
+            if (dateCopy >= startRangeDate && dateCopy <= endRangeDate) {
+              const ranges = dr.time_ranges || [];
+              for (const r of ranges) {
+                const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
+                daySlots.push(...slots);
+              }
             }
           }
         }
