@@ -236,11 +236,13 @@ Delete an availability schedule. Users can only delete their own availabilities.
 
 **GET** `/api/availability/slots/:userId`
 
-Generate available time slots for a specific user based on their availability schedules and existing bookings.
+Generate available time slots for a specific user (typically a mentor) based on their availability schedules and existing bookings.
+
+**Important**: This endpoint is typically used by mentees to check their connected mentor's availability before booking a meeting.
 
 #### Path Parameters
 
-- `userId` (required): MongoDB ObjectId of the mentor
+- `userId` (required): MongoDB ObjectId of the **mentor** whose availability you want to check. Mentees should use the `mentor_id._id` from their connections list.
 
 #### Query Parameters
 
@@ -248,14 +250,21 @@ Generate available time slots for a specific user based on their availability sc
 |-----------|------|----------|-------------|
 | start | ISO 8601 date | No | Start date (default: current date) |
 | end | ISO 8601 date | No | End date (default: 7 days from start) |
+| grouped | boolean | No | If `true`, returns slots grouped by availability type (default: false) |
 
-#### Example Request
+#### Example Requests
 
+**Simple flat list of slots:**
 ```
 GET /api/availability/slots/65e1a2b3c4d5e6f7g8h9i0j1?start=2024-03-15T00:00:00.000Z&end=2024-03-22T23:59:59.999Z
 ```
 
-#### Response (200 OK)
+**Grouped by availability configuration:**
+```
+GET /api/availability/slots/65e1a2b3c4d5e6f7g8h9i0j1?start=2024-03-15T00:00:00.000Z&end=2024-03-22T23:59:59.999Z&grouped=true
+```
+
+#### Response Format 1: Simple Flat List (default)
 
 ```json
 {
@@ -280,6 +289,126 @@ GET /api/availability/slots/65e1a2b3c4d5e6f7g8h9i0j1?start=2024-03-15T00:00:00.0
 }
 ```
 
+#### Response Format 2: Grouped by Availability (grouped=true)
+
+When you pass `grouped=true`, slots are organized by how the mentor created their availability (weekly, date_range, single_dates):
+
+```json
+{
+  "success": true,
+  "message": "Available slots retrieved successfully",
+  "data": {
+    "availabilities": [
+      {
+        "availability_id": "65f1a2b3c4d5e6f7g8h9i0j1",
+        "type": "weekly",
+        "days": ["mon", "wed", "fri"],
+        "time_ranges": [
+          { "from": "09:00", "to": "12:00" },
+          { "from": "14:00", "to": "17:00" }
+        ],
+        "slot_duration_minutes": 30,
+        "valid_from": "2024-03-01T00:00:00.000Z",
+        "valid_to": "2024-06-30T23:59:59.999Z",
+        "active": true,
+        "total_slots": 48,
+        "slots": [
+          {
+            "start": "2024-03-15T09:00:00.000Z",
+            "end": "2024-03-15T09:30:00.000Z",
+            "date": "2024-03-15"
+          },
+          {
+            "start": "2024-03-15T09:30:00.000Z",
+            "end": "2024-03-15T10:00:00.000Z",
+            "date": "2024-03-15"
+          }
+        ]
+      },
+      {
+        "availability_id": "65f1a2b3c4d5e6f7g8h9i0j2",
+        "type": "date_range",
+        "date_ranges": [
+          {
+            "start_date": "2024-03-20T00:00:00.000Z",
+            "end_date": "2024-03-25T23:59:59.999Z",
+            "time_ranges": [
+              { "from": "10:00", "to": "16:00" }
+            ]
+          }
+        ],
+        "slot_duration_minutes": 60,
+        "active": true,
+        "total_slots": 12,
+        "slots": [
+          {
+            "start": "2024-03-20T10:00:00.000Z",
+            "end": "2024-03-20T11:00:00.000Z",
+            "date": "2024-03-20"
+          },
+          {
+            "start": "2024-03-20T11:00:00.000Z",
+            "end": "2024-03-20T12:00:00.000Z",
+            "date": "2024-03-20"
+          }
+        ]
+      },
+      {
+        "availability_id": "65f1a2b3c4d5e6f7g8h9i0j3",
+        "type": "single_dates",
+        "date_ranges": [
+          {
+            "dates": [
+              "2024-03-18T00:00:00.000Z",
+              "2024-03-25T00:00:00.000Z"
+            ],
+            "time_ranges": [
+              { "from": "13:00", "to": "17:00" }
+            ]
+          }
+        ],
+        "slot_duration_minutes": 45,
+        "active": true,
+        "total_slots": 8,
+        "slots": [
+          {
+            "start": "2024-03-18T13:00:00.000Z",
+            "end": "2024-03-18T13:45:00.000Z",
+            "date": "2024-03-18"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Grouped Response Fields:**
+
+| Field | Description |
+|-------|-------------|
+| `availability_id` | The unique ID of the availability configuration |
+| `type` | Type of availability: "weekly", "date_range", or "single_dates" |
+| `days` | (weekly only) Array of days when available |
+| `time_ranges` | (weekly only) Time ranges for the days |
+| `date_ranges` | (date_range/single_dates) Date configurations |
+| `slot_duration_minutes` | Duration of each slot in minutes |
+| `valid_from` | Start date for this availability (if set) |
+| `valid_to` | End date for this availability (if set) |
+| `active` | Whether this availability is active |
+| `total_slots` | Total number of available slots for this configuration |
+| `slots` | Array of available time slots |
+| `slots[].start` | Slot start time (ISO 8601) |
+| `slots[].end` | Slot end time (ISO 8601) |
+| `slots[].date` | Slot date (YYYY-MM-DD format) |
+
+**Benefits of Grouped Format:**
+
+1. **Better UI Organization**: Display slots grouped by how they were created
+2. **Context Preservation**: Shows the original availability settings
+3. **Easier Filtering**: Frontend can filter/sort by availability type
+4. **Better UX**: Users can see patterns like "Weekly Monday/Wednesday" or "Special availability for March 20-25"
+
 #### Slot Generation Logic
 
 1. Retrieves all active availability schedules for the user
@@ -294,6 +423,8 @@ GET /api/availability/slots/65e1a2b3c4d5e6f7g8h9i0j1?start=2024-03-15T00:00:00.0
 **POST** `/api/availability/book`
 
 Book a meeting between a mentor and mentee.
+
+**For Mentees**: See the [Mentee Booking Flow Guide](./MENTEE_BOOKING_FLOW.md) for a complete step-by-step guide on how to check connections, view mentor availability, and book meetings.
 
 #### Request Body
 

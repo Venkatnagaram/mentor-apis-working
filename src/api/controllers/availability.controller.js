@@ -69,8 +69,15 @@ exports.getAvailableSlots = async (req, res, next) => {
     const userId = req.params.userId;
     const start = req.query.start || (new Date()).toISOString();
     const end = req.query.end || (new Date(Date.now() + 7*24*3600*1000)).toISOString();
-    const slots = await SlotService.generateAvailableSlotsForUser(userId, start, end);
-    return successResponse(res, "Available slots retrieved successfully", { slots });
+    const grouped = req.query.grouped === 'true';
+
+    if (grouped) {
+      const availabilities = await SlotService.generateGroupedSlotsForUser(userId, start, end);
+      return successResponse(res, "Available slots retrieved successfully", { availabilities });
+    } else {
+      const slots = await SlotService.generateAvailableSlotsForUser(userId, start, end);
+      return successResponse(res, "Available slots retrieved successfully", { slots });
+    }
   } catch (err) {
     next(err);
   }

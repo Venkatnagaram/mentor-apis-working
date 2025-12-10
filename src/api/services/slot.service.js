@@ -130,6 +130,123 @@ async function generateAvailableSlotsForUser(userId, startDate, endDate, options
   return results;
 }
 
+/**
+ * Generate slots grouped by availability configuration
+ * Returns slots organized by how they were created (weekly, date_range, single_dates)
+ */
+async function generateGroupedSlotsForUser(userId, startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  const avList = await AvailabilityRepo.findByUser(userId);
+  if (!avList || avList.length === 0) return [];
+
+  const meetings = await Meeting.find({
+    $or: [{ mentor_id: userId }, { mentee_id: userId }],
+    start_at: { $gte: start, $lte: end },
+    status: "scheduled",
+  }).lean();
+
+  const busy = meetings.map(m => ({ start: new Date(m.start_at), end: new Date(m.end_at) }));
+
+  const groupedResults = [];
+
+  for (const av of avList) {
+    const availabilitySlots = [];
+
+    let currentDay = new Date(start);
+    while (currentDay <= end) {
+      const dateCopy = new Date(currentDay);
+      const weekday = dateCopy.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase().slice(0,3);
+
+      if (av.valid_from && dateCopy < new Date(av.valid_from)) {
+        currentDay.setDate(currentDay.getDate() + 1);
+        continue;
+      }
+      if (av.valid_to && dateCopy > new Date(av.valid_to)) {
+        currentDay.setDate(currentDay.getDate() + 1);
+        continue;
+      }
+
+      let daySlots = [];
+
+      if (av.type === "weekly") {
+        if (av.days && av.days.includes(weekday)) {
+          const ranges = av.time_ranges || [];
+          for (const r of ranges) {
+            const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
+            daySlots.push(...slots);
+          }
+        }
+      } else if (av.type === "date_range") {
+        for (const dr of av.date_ranges || []) {
+          const s = new Date(dr.start_date);
+          const e = dr.end_date ? new Date(dr.end_date) : new Date(dr.start_date);
+          if (dateCopy >= s && dateCopy <= e) {
+            const ranges = dr.time_ranges || [];
+            for (const r of ranges) {
+              const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
+              daySlots.push(...slots);
+            }
+          }
+        }
+      } else if (av.type === "single_dates") {
+        for (const dr of av.date_ranges || []) {
+          const found = (dr.dates || []).some(d => {
+            const a = new Date(d);
+            return a.toDateString() === dateCopy.toDateString();
+          });
+          if (found) {
+            const ranges = dr.time_ranges || [];
+            for (const r of ranges) {
+              const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
+              daySlots.push(...slots);
+            }
+          }
+        }
+      }
+
+      const freeSlots = daySlots.filter(slot => {
+        for (const b of busy) {
+          if (!(slot.end <= b.start || slot.start >= b.end)) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      for (const s of freeSlots) {
+        availabilitySlots.push({
+          start: s.start.toISOString(),
+          end: s.end.toISOString(),
+          date: s.start.toISOString().split('T')[0],
+        });
+      }
+
+      currentDay.setDate(currentDay.getDate() + 1);
+    }
+
+    if (availabilitySlots.length > 0) {
+      groupedResults.push({
+        availability_id: av._id.toString(),
+        type: av.type,
+        days: av.days,
+        time_ranges: av.time_ranges,
+        date_ranges: av.date_ranges,
+        slot_duration_minutes: av.slot_duration_minutes,
+        valid_from: av.valid_from,
+        valid_to: av.valid_to,
+        active: av.active,
+        slots: availabilitySlots,
+        total_slots: availabilitySlots.length,
+      });
+    }
+  }
+
+  return groupedResults;
+}
+
 module.exports = {
   generateAvailableSlotsForUser,
+  generateGroupedSlotsForUser,
 };
