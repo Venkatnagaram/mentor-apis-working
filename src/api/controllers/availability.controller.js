@@ -70,6 +70,27 @@ exports.getAvailableSlots = async (req, res, next) => {
     const start = req.query.start || (new Date()).toISOString();
     const end = req.query.end || (new Date(Date.now() + 7*24*3600*1000)).toISOString();
     const grouped = req.query.grouped === 'true';
+    const debug = req.query.debug === 'true';
+
+    if (debug) {
+      const avList = await AvailabilityRepo.findByUser(userId);
+      return successResponse(res, "Debug info", {
+        total_availabilities: avList.length,
+        availabilities: avList.map(av => ({
+          id: av._id,
+          type: av.type,
+          active: av.active,
+          days: av.days,
+          time_ranges: av.time_ranges,
+          date_ranges: av.date_ranges,
+          slot_duration_minutes: av.slot_duration_minutes,
+          valid_from: av.valid_from,
+          valid_to: av.valid_to,
+        })),
+        query_start: start,
+        query_end: end,
+      });
+    }
 
     if (grouped) {
       const availabilities = await SlotService.generateGroupedSlotsForUser(userId, start, end);

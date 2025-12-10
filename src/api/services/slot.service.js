@@ -136,7 +136,9 @@ async function generateAvailableSlotsForUser(userId, startDate, endDate, options
  */
 async function generateGroupedSlotsForUser(userId, startDate, endDate) {
   const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
   const end = new Date(endDate);
+  end.setHours(23, 59, 59, 999);
 
   const avList = await AvailabilityRepo.findByUser(userId);
   if (!avList || avList.length === 0) return [];
@@ -152,6 +154,8 @@ async function generateGroupedSlotsForUser(userId, startDate, endDate) {
   const groupedResults = [];
 
   for (const av of avList) {
+    if (!av.active) continue;
+
     const availabilitySlots = [];
 
     let currentDay = new Date(start);
@@ -159,13 +163,23 @@ async function generateGroupedSlotsForUser(userId, startDate, endDate) {
       const dateCopy = new Date(currentDay);
       const weekday = dateCopy.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase().slice(0,3);
 
-      if (av.valid_from && dateCopy < new Date(av.valid_from)) {
-        currentDay.setDate(currentDay.getDate() + 1);
-        continue;
+      const dateOnlyStr = dateCopy.toISOString().split('T')[0];
+
+      if (av.valid_from) {
+        const validFromDate = new Date(av.valid_from);
+        validFromDate.setHours(0, 0, 0, 0);
+        if (dateCopy < validFromDate) {
+          currentDay.setDate(currentDay.getDate() + 1);
+          continue;
+        }
       }
-      if (av.valid_to && dateCopy > new Date(av.valid_to)) {
-        currentDay.setDate(currentDay.getDate() + 1);
-        continue;
+      if (av.valid_to) {
+        const validToDate = new Date(av.valid_to);
+        validToDate.setHours(23, 59, 59, 999);
+        if (dateCopy > validToDate) {
+          currentDay.setDate(currentDay.getDate() + 1);
+          continue;
+        }
       }
 
       let daySlots = [];
@@ -180,9 +194,12 @@ async function generateGroupedSlotsForUser(userId, startDate, endDate) {
         }
       } else if (av.type === "date_range") {
         for (const dr of av.date_ranges || []) {
-          const s = new Date(dr.start_date);
-          const e = dr.end_date ? new Date(dr.end_date) : new Date(dr.start_date);
-          if (dateCopy >= s && dateCopy <= e) {
+          const startRangeDate = new Date(dr.start_date);
+          startRangeDate.setHours(0, 0, 0, 0);
+          const endRangeDate = dr.end_date ? new Date(dr.end_date) : new Date(dr.start_date);
+          endRangeDate.setHours(23, 59, 59, 999);
+
+          if (dateCopy >= startRangeDate && dateCopy <= endRangeDate) {
             const ranges = dr.time_ranges || [];
             for (const r of ranges) {
               const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
@@ -193,8 +210,8 @@ async function generateGroupedSlotsForUser(userId, startDate, endDate) {
       } else if (av.type === "single_dates") {
         for (const dr of av.date_ranges || []) {
           const found = (dr.dates || []).some(d => {
-            const a = new Date(d);
-            return a.toDateString() === dateCopy.toDateString();
+            const singleDate = new Date(d);
+            return singleDate.toISOString().split('T')[0] === dateOnlyStr;
           });
           if (found) {
             const ranges = dr.time_ranges || [];
