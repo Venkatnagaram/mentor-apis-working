@@ -81,6 +81,32 @@ const validateDateRanges = (value, { req }) => {
     }
   }
 
+  // For weekly type: date_ranges are optional but if provided, validate them
+  if (type === "weekly" && value) {
+    if (!Array.isArray(value)) {
+      throw new Error("date_ranges must be an array");
+    }
+
+    for (const range of value) {
+      if (!range.start_date) {
+        throw new Error("start_date is required for date_ranges in weekly type");
+      }
+
+      if (range.end_date) {
+        const start = new Date(range.start_date);
+        const end = new Date(range.end_date);
+
+        if (end < start) {
+          throw new Error("end_date must be after or equal to start_date");
+        }
+      }
+
+      if (range.time_ranges) {
+        validateTimeRange(range.time_ranges);
+      }
+    }
+  }
+
   return true;
 };
 
@@ -103,6 +129,7 @@ exports.createAvailabilityValidation = [
     .custom(validateTimeRange),
 
   body("date_ranges")
+    .optional()
     .custom(validateDateRanges),
 
   body("valid_from")
