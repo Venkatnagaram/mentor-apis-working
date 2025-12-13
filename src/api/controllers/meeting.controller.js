@@ -4,9 +4,16 @@ const { sendSuccess, sendError } = require("../../utils/responseHelper");
 exports.getUserMeetings = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { status } = req.query;
+    const { status, view, start_date, end_date } = req.query;
 
-    const meetings = await meetingService.getMeetingsByUser(userId, status || "scheduled");
+    const filters = {
+      status: status || "scheduled",
+      view,
+      start_date,
+      end_date,
+    };
+
+    const meetings = await meetingService.getMeetingsByUser(userId, filters);
 
     return sendSuccess(res, meetings, "Meetings retrieved successfully");
   } catch (error) {

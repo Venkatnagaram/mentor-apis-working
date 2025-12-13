@@ -2,6 +2,12 @@ const Meeting = require("../models/Meeting");
 const Connection = require("../models/Connection");
 const User = require("../models/User");
 const mongoose = require("mongoose");
+const {
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth
+} = require("date-fns");
 
 class MeetingService {
   async checkMeetingConflict(mentorId, menteeId, startAt, endAt) {
@@ -97,11 +103,53 @@ class MeetingService {
     return meeting.toObject();
   }
 
-  async getMeetingsByUser(userId, status = "scheduled") {
-    return await Meeting.find({
+  async getMeetingsByUser(userId, filters = {}) {
+    const { status = "scheduled", view, start_date, end_date } = filters;
+
+    const query = {
       $or: [{ mentor_id: userId }, { mentee_id: userId }],
       status,
-    })
+    };
+
+    let dateRange = {};
+    if (view === "current_week") {
+      const now = new Date();
+      dateRange = {
+        start_at: {
+          $gte: startOfWeek(now, { weekStartsOn: 1 }),
+          $lte: endOfWeek(now, { weekStartsOn: 1 }),
+        },
+      };
+    } else if (view === "weekly" && start_date) {
+      const weekStart = new Date(start_date);
+      dateRange = {
+        start_at: {
+          $gte: startOfWeek(weekStart, { weekStartsOn: 1 }),
+          $lte: endOfWeek(weekStart, { weekStartsOn: 1 }),
+        },
+      };
+    } else if (view === "monthly" && start_date) {
+      const monthStart = new Date(start_date);
+      dateRange = {
+        start_at: {
+          $gte: startOfMonth(monthStart),
+          $lte: endOfMonth(monthStart),
+        },
+      };
+    } else if (view === "custom" && start_date && end_date) {
+      dateRange = {
+        start_at: {
+          $gte: new Date(start_date),
+          $lte: new Date(end_date),
+        },
+      };
+    }
+
+    if (Object.keys(dateRange).length > 0) {
+      Object.assign(query, dateRange);
+    }
+
+    return await Meeting.find(query)
       .populate("mentor_id", "name email profile_picture")
       .populate("mentee_id", "name email profile_picture")
       .populate("connection_id", "status")
