@@ -102,6 +102,9 @@ class MeetingService {
       $or: [{ mentor_id: userId }, { mentee_id: userId }],
       status,
     })
+      .populate("mentor_id", "name email profile_picture")
+      .populate("mentee_id", "name email profile_picture")
+      .populate("connection_id", "status")
       .sort({ start_at: 1 })
       .lean();
   }

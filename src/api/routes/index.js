@@ -8,6 +8,7 @@ const userRoutes = require("./user.routes");
 const connectionRoutes = require("./connection.routes");
 const messageRoutes = require("./message.routes");
 const availabilityRoutes = require("./availability.routes");
+const meetingRoutes = require("./meeting.routes");
 
 // Mount routes with prefixes
 router.use("/auth", authRoutes);
@@ -16,5 +17,6 @@ router.use("/users", userRoutes);
 router.use("/connections", connectionRoutes);
 router.use("/messages", messageRoutes);
 router.use("/availability", availabilityRoutes);
+router.use("/meetings", meetingRoutes);
 
 module.exports = router;
