@@ -341,6 +341,7 @@ Generate available time slots for a specific user (typically a mentor) based on 
 | start | ISO 8601 date | No | Start date (default: current date) |
 | end | ISO 8601 date | No | End date (default: 7 days from start) |
 | grouped | boolean | No | If `true`, returns slots grouped by availability type (default: false) |
+| include_status | boolean | No | If `true`, returns ALL slots with their status (available/booked) for UI display (default: false) |
 
 #### Example Requests
 
@@ -352,6 +353,11 @@ GET /api/availability/slots/65e1a2b3c4d5e6f7g8h9i0j1?start=2024-03-15T00:00:00.0
 **Grouped by availability configuration:**
 ```
 GET /api/availability/slots/65e1a2b3c4d5e6f7g8h9i0j1?start=2024-03-15T00:00:00.000Z&end=2024-03-22T23:59:59.999Z&grouped=true
+```
+
+**All slots with status (for UI display):**
+```
+GET /api/availability/slots/65e1a2b3c4d5e6f7g8h9i0j1?start=2024-03-15T00:00:00.000Z&end=2024-03-22T23:59:59.999Z&include_status=true
 ```
 
 #### Response Format 1: Simple Flat List (default)
@@ -498,6 +504,82 @@ When you pass `grouped=true`, slots are organized by how the mentor created thei
 2. **Context Preservation**: Shows the original availability settings
 3. **Easier Filtering**: Frontend can filter/sort by availability type
 4. **Better UX**: Users can see patterns like "Weekly Monday/Wednesday" or "Special availability for March 20-25"
+
+#### Response Format 3: All Slots with Status (include_status=true)
+
+When you pass `include_status=true`, you get ALL slots (both available and booked) with their current status. This is ideal for UI display where you want to show disabled slots.
+
+```json
+{
+  "success": true,
+  "message": "All slots with status retrieved successfully",
+  "data": {
+    "slots": [
+      {
+        "start": "2024-03-15T09:00:00.000Z",
+        "end": "2024-03-15T10:00:00.000Z",
+        "status": "available"
+      },
+      {
+        "start": "2024-03-15T10:00:00.000Z",
+        "end": "2024-03-15T11:00:00.000Z",
+        "status": "booked",
+        "meeting": {
+          "meeting_id": "65f1a2b3c4d5e6f7g8h9i0j1",
+          "mentor": {
+            "_id": "65e1a2b3c4d5e6f7g8h9i0j1",
+            "name": "John Mentor",
+            "email": "mentor@example.com",
+            "profile_picture": "https://..."
+          },
+          "mentee": {
+            "_id": "65e1a2b3c4d5e6f7g8h9i0j2",
+            "name": "Jane Mentee",
+            "email": "mentee@example.com",
+            "profile_picture": "https://..."
+          },
+          "start_at": "2024-03-15T10:00:00.000Z",
+          "end_at": "2024-03-15T11:00:00.000Z",
+          "duration_minutes": 60
+        }
+      },
+      {
+        "start": "2024-03-15T11:00:00.000Z",
+        "end": "2024-03-15T12:00:00.000Z",
+        "status": "available"
+      }
+    ]
+  }
+}
+```
+
+**Slot Status Fields:**
+
+| Field | Description |
+|-------|-------------|
+| `start` | Slot start time (ISO 8601) |
+| `end` | Slot end time (ISO 8601) |
+| `status` | Either "available" or "booked" |
+| `meeting` | (Only for booked slots) Full meeting details including participants |
+| `meeting.meeting_id` | ID of the booked meeting |
+| `meeting.mentor` | Mentor details (id, name, email, profile_picture) |
+| `meeting.mentee` | Mentee details (id, name, email, profile_picture) |
+| `meeting.start_at` | Meeting start time |
+| `meeting.end_at` | Meeting end time |
+| `meeting.duration_minutes` | Meeting duration |
+
+**Benefits of include_status Format:**
+
+1. **UI Display**: Show all slots including unavailable/booked ones with disabled state
+2. **Better User Experience**: Users can see the full availability pattern, not just gaps
+3. **Visual Feedback**: Display who has booked each slot (useful for mentors viewing their calendar)
+4. **Complete Information**: Get everything needed for a calendar/schedule view in one request
+
+**Use Cases:**
+
+- **For Mentees**: Display a calendar showing available slots (clickable) and booked slots (disabled/grayed out)
+- **For Mentors**: View their own schedule with all slots and see who has booked each time
+- **Calendar Views**: Build a full calendar interface showing both available and occupied time slots
 
 #### Slot Generation Logic
 

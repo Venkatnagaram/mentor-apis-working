@@ -280,7 +280,117 @@ async function generateGroupedSlotsForUser(userId, startDate, endDate) {
   return groupedResults;
 }
 
+/**
+ * Generate ALL slots with their status (available or booked)
+ * This includes both available and unavailable slots for UI display
+ */
+async function generateAllSlotsWithStatus(userId, startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  const avList = await AvailabilityRepo.findByUser(userId);
+  if (!avList || avList.length === 0) return [];
+
+  const activeAvailabilities = avList.filter(av => av.active !== false);
+  if (activeAvailabilities.length === 0) return [];
+
+  // Fetch ALL meetings for user (as mentor or mentee) in the range
+  const meetings = await Meeting.find({
+    $or: [{ mentor_id: userId }, { mentee_id: userId }],
+    start_at: { $gte: start, $lte: end },
+    status: "scheduled",
+  })
+    .populate("mentor_id", "name email profile_picture")
+    .populate("mentee_id", "name email profile_picture")
+    .lean();
+
+  const results = [];
+
+  // Iterate each day in the date range
+  let currentDay = new Date(start);
+  while (currentDay <= end) {
+    const dateCopy = new Date(currentDay);
+    const weekday = dateCopy.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase().slice(0,3);
+    const allDaySlots = [];
+
+    for (const av of activeAvailabilities) {
+      if (av.valid_from && dateCopy < new Date(av.valid_from)) continue;
+      if (av.valid_to && dateCopy > new Date(av.valid_to)) continue;
+
+      if (av.type === "weekly") {
+        if (!av.days || !av.days.includes(weekday)) continue;
+        const ranges = av.time_ranges || [];
+        for (const r of ranges) {
+          const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
+          allDaySlots.push(...slots);
+        }
+      } else if (av.type === "date_range") {
+        for (const dr of av.date_ranges || []) {
+          const s = new Date(dr.start_date);
+          const e = dr.end_date ? new Date(dr.end_date) : new Date(dr.start_date);
+          if (dateCopy < s || dateCopy > e) continue;
+          const ranges = dr.time_ranges || [];
+          for (const r of ranges) {
+            const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
+            allDaySlots.push(...slots);
+          }
+        }
+      } else if (av.type === "single_dates") {
+        for (const dr of av.date_ranges || []) {
+          const found = (dr.dates || []).some(d => {
+            const a = new Date(d); return a.toDateString() === dateCopy.toDateString();
+          });
+          if (!found) continue;
+          const ranges = dr.time_ranges || [];
+          for (const r of ranges) {
+            const slots = generateSlotsForRange(dateCopy, r.from, r.to, av.slot_duration_minutes || 30);
+            allDaySlots.push(...slots);
+          }
+        }
+      }
+    }
+
+    // Check each slot against meetings to determine status
+    for (const slot of allDaySlots) {
+      let slotStatus = "available";
+      let meetingDetails = null;
+
+      // Check if this slot overlaps with any meeting
+      for (const meeting of meetings) {
+        const meetingStart = new Date(meeting.start_at);
+        const meetingEnd = new Date(meeting.end_at);
+
+        // Check for overlap
+        if (!(slot.end <= meetingStart || slot.start >= meetingEnd)) {
+          slotStatus = "booked";
+          meetingDetails = {
+            meeting_id: meeting._id,
+            mentor: meeting.mentor_id,
+            mentee: meeting.mentee_id,
+            start_at: meeting.start_at,
+            end_at: meeting.end_at,
+            duration_minutes: meeting.duration_minutes,
+          };
+          break;
+        }
+      }
+
+      results.push({
+        start: slot.start.toISOString(),
+        end: slot.end.toISOString(),
+        status: slotStatus,
+        ...(meetingDetails && { meeting: meetingDetails }),
+      });
+    }
+
+    currentDay.setDate(currentDay.getDate() + 1);
+  }
+
+  return results;
+}
+
 module.exports = {
   generateAvailableSlotsForUser,
   generateGroupedSlotsForUser,
+  generateAllSlotsWithStatus,
 };

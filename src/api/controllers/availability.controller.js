@@ -71,6 +71,7 @@ exports.getAvailableSlots = async (req, res, next) => {
     const end = req.query.end || (new Date(Date.now() + 7*24*3600*1000)).toISOString();
     const grouped = req.query.grouped === 'true';
     const debug = req.query.debug === 'true';
+    const includeStatus = req.query.include_status === 'true';
 
     if (debug) {
       const avList = await AvailabilityRepo.findByUser(userId);
@@ -92,7 +93,10 @@ exports.getAvailableSlots = async (req, res, next) => {
       });
     }
 
-    if (grouped) {
+    if (includeStatus) {
+      const slots = await SlotService.generateAllSlotsWithStatus(userId, start, end);
+      return successResponse(res, "All slots with status retrieved successfully", { slots });
+    } else if (grouped) {
       const availabilities = await SlotService.generateGroupedSlotsForUser(userId, start, end);
       return successResponse(res, "Available slots retrieved successfully", { availabilities });
     } else {
