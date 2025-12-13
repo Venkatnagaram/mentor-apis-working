@@ -46,6 +46,10 @@ async function generateAvailableSlotsForUser(userId, startDate, endDate, options
   const avList = await AvailabilityRepo.findByUser(userId);
   if (!avList || avList.length === 0) return [];
 
+  // Filter only active availabilities
+  const activeAvailabilities = avList.filter(av => av.active !== false);
+  if (activeAvailabilities.length === 0) return [];
+
   // fetch meetings for user (as mentor or mentee) in the range to exclude
   const meetings = await Meeting.find({
     $or: [{ mentor_id: userId }, { mentee_id: userId }],
@@ -65,7 +69,7 @@ async function generateAvailableSlotsForUser(userId, startDate, endDate, options
     const weekday = dateCopy.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase().slice(0,3);
     const dateMatches = [];
 
-    for (const av of avList) {
+    for (const av of activeAvailabilities) {
       // check valid_from/to
       if (av.valid_from && dateCopy < new Date(av.valid_from)) continue;
       if (av.valid_to && dateCopy > new Date(av.valid_to)) continue;

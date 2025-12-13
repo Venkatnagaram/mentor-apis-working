@@ -197,14 +197,14 @@ exports.getAvailableSlotsValidation = [
 
 exports.bookMeetingValidation = [
   body("mentor_id")
-    .notEmpty()
+    .optional()
     .isMongoId()
-    .withMessage("mentor_id is required and must be valid"),
+    .withMessage("mentor_id must be valid if provided"),
 
   body("mentee_id")
-    .notEmpty()
+    .optional()
     .isMongoId()
-    .withMessage("mentee_id is required and must be valid"),
+    .withMessage("mentee_id must be valid if provided"),
 
   body("start_at")
     .notEmpty()
@@ -225,4 +225,11 @@ exports.bookMeetingValidation = [
     .optional()
     .isMongoId()
     .withMessage("connection_id must be a valid ID if provided"),
+
+  body().custom((value, { req }) => {
+    if (!req.body.connection_id && (!req.body.mentor_id || !req.body.mentee_id)) {
+      throw new Error("Either connection_id or both mentor_id and mentee_id are required");
+    }
+    return true;
+  }),
 ];

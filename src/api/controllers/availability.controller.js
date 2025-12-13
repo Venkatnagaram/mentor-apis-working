@@ -106,33 +106,69 @@ exports.getAvailableSlots = async (req, res, next) => {
 
 exports.bookMeeting = async (req, res, next) => {
   try {
-    const { connection_id, mentor_id, mentee_id, start_at, end_at, duration_minutes } = req.body;
+    let { connection_id, mentor_id, mentee_id, start_at, end_at, duration_minutes } = req.body;
 
-    if (!mentor_id || !mentee_id || !start_at || !end_at || !duration_minutes) {
-      return errorResponse(res, "Missing required fields", 400);
+    if (!start_at || !end_at || !duration_minutes) {
+      return errorResponse(res, "Missing required fields: start_at, end_at, duration_minutes", 400);
+    }
+
+    // If connection_id is provided, use mentor and mentee from the connection
+    if (connection_id) {
+      const Connection = require("../models/Connection");
+      const connection = await Connection.findById(connection_id).lean();
+
+      if (!connection) {
+        return errorResponse(res, "Connection not found", 404);
+      }
+
+      if (connection.status !== "accepted") {
+        return errorResponse(res, "Can only book meetings for accepted connections", 400);
+      }
+
+      // Override with connection's mentor and mentee IDs
+      mentor_id = connection.mentor_id.toString();
+      mentee_id = connection.mentee_id.toString();
+    } else {
+      // If no connection_id, require mentor_id and mentee_id
+      if (!mentor_id || !mentee_id) {
+        return errorResponse(res, "Either connection_id or both mentor_id and mentee_id are required", 400);
+      }
     }
 
     // Validate that the mentor has availability for this slot
-    const startDate = new Date(start_at);
-    const endDate = new Date(end_at);
+    const bookingStart = new Date(start_at);
+    const bookingEnd = new Date(end_at);
 
-    // Get available slots for the mentor in the requested time range
+    // Search for slots in the entire day range
+    const dayStart = new Date(bookingStart);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(bookingStart);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    // Get available slots for the mentor for the day
     const availableSlots = await SlotService.generateAvailableSlotsForUser(
       mentor_id,
-      startDate,
-      endDate
+      dayStart,
+      dayEnd
     );
 
     // Check if the requested slot exists in the mentor's available slots
     const slotExists = availableSlots.some(slot => {
       const slotStart = new Date(slot.start);
       const slotEnd = new Date(slot.end);
-      return slotStart.getTime() === startDate.getTime() &&
-             slotEnd.getTime() === endDate.getTime();
+      return slotStart.getTime() === bookingStart.getTime() &&
+             slotEnd.getTime() === bookingEnd.getTime();
     });
 
     if (!slotExists) {
-      return errorResponse(res, "Selected slot is not available for this mentor", 400);
+      const debugInfo = {
+        mentor_id,
+        requested_start: start_at,
+        requested_end: end_at,
+        available_slots_count: availableSlots.length,
+        sample_slots: availableSlots.slice(0, 5).map(s => ({ start: s.start, end: s.end }))
+      };
+      return errorResponse(res, `Selected slot is not available for this mentor. Debug: ${JSON.stringify(debugInfo)}`, 400);
     }
 
     const meeting = await MeetingService.createMeeting({
