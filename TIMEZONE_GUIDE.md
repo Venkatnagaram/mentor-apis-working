@@ -2,6 +2,19 @@
 
 This application now includes comprehensive timezone support for all time-related data. All timestamps are stored in UTC in the database and can be converted to any timezone when sent to or received from the API.
 
+## Important: What Gets Converted
+
+**The timezone conversion ONLY applies to full datetime timestamps**, not to date-only or time-only values:
+
+✅ **Converted:**
+- Full timestamps: `"2024-01-15T10:00:00Z"`, `"2024-01-15T10:00:00+05:30"`
+- Database timestamp fields: `created_at`, `updated_at`, `start_at`, `end_at`, `valid_from`, `valid_to`
+
+❌ **NOT Converted (preserved as-is):**
+- Date-only values: `"2025-12-14"` (in `date_ranges.dates`)
+- Time-only values: `"09:00"`, `"17:00"` (in `time_ranges.from` and `time_ranges.to`)
+- These represent patterns/schedules, not specific moments in time
+
 ## Global Configuration
 
 Two environment variables control default timezones:

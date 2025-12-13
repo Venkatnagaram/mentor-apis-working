@@ -85,8 +85,16 @@ const convertObjectDates = (obj, converter, timezone = null) => {
 
   const converted = {};
   for (const [key, value] of Object.entries(obj)) {
-    if (value instanceof Date) {
-      converted[key] = converter(value, timezone);
+    // Skip date-only fields (dates array in date_ranges)
+    if (key === 'dates' && Array.isArray(value)) {
+      converted[key] = value;
+    } else if (value instanceof Date) {
+      // Skip Date objects from date-only fields
+      if (key === 'valid_from' || key === 'valid_to' || key === 'start_date' || key === 'end_date') {
+        converted[key] = value;
+      } else {
+        converted[key] = converter(value, timezone);
+      }
     } else if (typeof value === 'string' && isISODateString(value)) {
       converted[key] = converter(value, timezone);
     } else if (typeof value === 'object' && value !== null) {
