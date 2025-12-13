@@ -19,17 +19,22 @@ const toUTC = (dateInput, sourceTimezone = null) => {
     } else if (dateInput instanceof Date) {
       date = dateInput;
     } else {
-      throw new Error('Invalid date input');
+      // Return as-is if not a recognized date type
+      console.warn('toUTC: Unrecognized date type, returning as-is:', typeof dateInput, dateInput);
+      return dateInput;
     }
 
     if (!isValid(date)) {
-      throw new Error('Invalid date');
+      // Return original value instead of throwing
+      console.warn('toUTC: Invalid date, returning as-is:', dateInput);
+      return dateInput;
     }
 
     return zonedTimeToUtc(date, timezone);
   } catch (error) {
-    console.error('Error converting to UTC:', error);
-    throw new Error('Failed to convert date to UTC');
+    console.error('Error converting to UTC:', error, 'Input:', dateInput);
+    // Return original value instead of throwing
+    return dateInput;
   }
 };
 
@@ -48,17 +53,22 @@ const fromUTC = (dateInput, targetTimezone = null) => {
     } else if (dateInput instanceof Date) {
       date = dateInput;
     } else {
-      throw new Error('Invalid date input');
+      // Return as-is if not a recognized date type
+      console.warn('fromUTC: Unrecognized date type, returning as-is:', typeof dateInput, dateInput);
+      return dateInput;
     }
 
     if (!isValid(date)) {
-      throw new Error('Invalid date');
+      // Return original value instead of throwing
+      console.warn('fromUTC: Invalid date, returning as-is:', dateInput);
+      return dateInput;
     }
 
     return utcToZonedTime(date, timezone);
   } catch (error) {
-    console.error('Error converting from UTC:', error);
-    throw new Error('Failed to convert date from UTC');
+    console.error('Error converting from UTC:', error, 'Input:', dateInput);
+    // Return original value instead of throwing
+    return dateInput;
   }
 };
 
