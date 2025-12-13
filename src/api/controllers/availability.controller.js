@@ -112,6 +112,29 @@ exports.bookMeeting = async (req, res, next) => {
       return errorResponse(res, "Missing required fields", 400);
     }
 
+    // Validate that the mentor has availability for this slot
+    const startDate = new Date(start_at);
+    const endDate = new Date(end_at);
+
+    // Get available slots for the mentor in the requested time range
+    const availableSlots = await SlotService.generateAvailableSlotsForUser(
+      mentor_id,
+      startDate,
+      endDate
+    );
+
+    // Check if the requested slot exists in the mentor's available slots
+    const slotExists = availableSlots.some(slot => {
+      const slotStart = new Date(slot.start);
+      const slotEnd = new Date(slot.end);
+      return slotStart.getTime() === startDate.getTime() &&
+             slotEnd.getTime() === endDate.getTime();
+    });
+
+    if (!slotExists) {
+      return errorResponse(res, "Selected slot is not available for this mentor", 400);
+    }
+
     const meeting = await MeetingService.createMeeting({
       connection_id,
       mentor_id,
@@ -123,7 +146,7 @@ exports.bookMeeting = async (req, res, next) => {
 
     return successResponse(res, "Meeting scheduled successfully", meeting, 201);
   } catch (err) {
-    if (err.message.includes("conflict") || err.message.includes("past") || err.message.includes("after")) {
+    if (err.message.includes("conflict") || err.message.includes("past") || err.message.includes("after") || err.message.includes("available")) {
       return errorResponse(res, err.message, 400);
     }
     next(err);
