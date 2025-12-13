@@ -6,6 +6,11 @@ const FRONTEND_TIMEZONE = process.env.FRONTEND_TIMEZONE || 'UTC';
 
 const toUTC = (dateInput, sourceTimezone = null) => {
   try {
+    // Handle null/undefined values
+    if (!dateInput) {
+      return dateInput;
+    }
+
     const timezone = sourceTimezone || BACKEND_TIMEZONE;
 
     let date;
@@ -30,6 +35,11 @@ const toUTC = (dateInput, sourceTimezone = null) => {
 
 const fromUTC = (dateInput, targetTimezone = null) => {
   try {
+    // Handle null/undefined values
+    if (!dateInput) {
+      return dateInput;
+    }
+
     const timezone = targetTimezone || FRONTEND_TIMEZONE;
 
     let date;
@@ -87,6 +97,12 @@ const convertObjectDates = (obj, converter, timezone = null) => {
   const dateOnlyFields = ['valid_from', 'valid_to', 'start_date', 'end_date', 'dates'];
 
   for (const [key, value] of Object.entries(obj)) {
+    // Skip null/undefined values
+    if (value === null || value === undefined) {
+      converted[key] = value;
+      continue;
+    }
+
     // Skip date-only fields entirely (both strings and Date objects)
     if (dateOnlyFields.includes(key)) {
       converted[key] = value;
