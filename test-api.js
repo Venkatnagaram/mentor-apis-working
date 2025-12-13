@@ -286,6 +286,89 @@ async function testMentorEndpoints() {
   }
 }
 
+async function testMeetingEndpoints() {
+  log("\n=== Testing Meeting Endpoints ===", "blue");
+
+  log("\n1. Testing GET /api/meetings (all scheduled meetings)", "yellow");
+  const allMeetingsRes = await testEndpoint("GET", "/meetings?status=scheduled", null, authToken);
+  log(`Status: ${allMeetingsRes.status}`);
+  log(`Response: ${JSON.stringify(allMeetingsRes.data, null, 2)}`);
+
+  if (allMeetingsRes.status === 200) {
+    log("✓ Get all scheduled meetings successful", "green");
+  } else {
+    log("✗ Get all scheduled meetings failed", "red");
+  }
+
+  log("\n2. Testing GET /api/meetings (current week)", "yellow");
+  const currentWeekRes = await testEndpoint(
+    "GET",
+    "/meetings?status=scheduled&view=current_week",
+    null,
+    authToken
+  );
+  log(`Status: ${currentWeekRes.status}`);
+  log(`Response: ${JSON.stringify(currentWeekRes.data, null, 2)}`);
+
+  if (currentWeekRes.status === 200) {
+    log("✓ Get current week meetings successful", "green");
+  } else {
+    log("✗ Get current week meetings failed", "red");
+  }
+
+  log("\n3. Testing GET /api/meetings (specific week)", "yellow");
+  const weekDate = new Date().toISOString();
+  const weeklyRes = await testEndpoint(
+    "GET",
+    `/meetings?status=scheduled&view=weekly&start_date=${weekDate}`,
+    null,
+    authToken
+  );
+  log(`Status: ${weeklyRes.status}`);
+  log(`Response: ${JSON.stringify(weeklyRes.data, null, 2)}`);
+
+  if (weeklyRes.status === 200) {
+    log("✓ Get specific week meetings successful", "green");
+  } else {
+    log("✗ Get specific week meetings failed", "red");
+  }
+
+  log("\n4. Testing GET /api/meetings (monthly)", "yellow");
+  const monthDate = new Date().toISOString();
+  const monthlyRes = await testEndpoint(
+    "GET",
+    `/meetings?status=scheduled&view=monthly&start_date=${monthDate}`,
+    null,
+    authToken
+  );
+  log(`Status: ${monthlyRes.status}`);
+  log(`Response: ${JSON.stringify(monthlyRes.data, null, 2)}`);
+
+  if (monthlyRes.status === 200) {
+    log("✓ Get monthly meetings successful", "green");
+  } else {
+    log("✗ Get monthly meetings failed", "red");
+  }
+
+  log("\n5. Testing GET /api/meetings (custom date range)", "yellow");
+  const startDate = new Date().toISOString();
+  const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const customRes = await testEndpoint(
+    "GET",
+    `/meetings?status=scheduled&view=custom&start_date=${startDate}&end_date=${endDate}`,
+    null,
+    authToken
+  );
+  log(`Status: ${customRes.status}`);
+  log(`Response: ${JSON.stringify(customRes.data, null, 2)}`);
+
+  if (customRes.status === 200) {
+    log("✓ Get custom date range meetings successful", "green");
+  } else {
+    log("✗ Get custom date range meetings failed", "red");
+  }
+}
+
 async function runAllTests() {
   log("\n╔════════════════════════════════════════╗", "blue");
   log("║   API ENDPOINT TESTING SUITE          ║", "blue");
@@ -295,6 +378,7 @@ async function runAllTests() {
     await testAuthEndpoints();
     await testOnboardingEndpoints();
     await testMentorEndpoints();
+    await testMeetingEndpoints();
 
     log("\n╔════════════════════════════════════════╗", "green");
     log("║   ALL TESTS COMPLETED                  ║", "green");

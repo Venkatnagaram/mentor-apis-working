@@ -104,57 +104,71 @@ class MeetingService {
   }
 
   async getMeetingsByUser(userId, filters = {}) {
-    const { status = "scheduled", view, start_date, end_date } = filters;
+    try {
+      const { status = "scheduled", view, start_date, end_date } = filters;
 
-    const query = {
-      $or: [{ mentor_id: userId }, { mentee_id: userId }],
-      status,
-    };
+      const query = {
+        $or: [{ mentor_id: userId }, { mentee_id: userId }],
+        status,
+      };
 
-    let dateRange = {};
-    if (view === "current_week") {
-      const now = new Date();
-      dateRange = {
-        start_at: {
-          $gte: startOfWeek(now, { weekStartsOn: 1 }),
-          $lte: endOfWeek(now, { weekStartsOn: 1 }),
-        },
-      };
-    } else if (view === "weekly" && start_date) {
-      const weekStart = new Date(start_date);
-      dateRange = {
-        start_at: {
-          $gte: startOfWeek(weekStart, { weekStartsOn: 1 }),
-          $lte: endOfWeek(weekStart, { weekStartsOn: 1 }),
-        },
-      };
-    } else if (view === "monthly" && start_date) {
-      const monthStart = new Date(start_date);
-      dateRange = {
-        start_at: {
-          $gte: startOfMonth(monthStart),
-          $lte: endOfMonth(monthStart),
-        },
-      };
-    } else if (view === "custom" && start_date && end_date) {
-      dateRange = {
-        start_at: {
-          $gte: new Date(start_date),
-          $lte: new Date(end_date),
-        },
-      };
+      let dateRange = {};
+      if (view === "current_week") {
+        const now = new Date();
+        const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+        dateRange = {
+          start_at: {
+            $gte: weekStart,
+            $lte: weekEnd,
+          },
+        };
+      } else if (view === "weekly" && start_date) {
+        const weekStart = startOfWeek(new Date(start_date), { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(new Date(start_date), { weekStartsOn: 1 });
+        dateRange = {
+          start_at: {
+            $gte: weekStart,
+            $lte: weekEnd,
+          },
+        };
+      } else if (view === "monthly" && start_date) {
+        const monthStart = startOfMonth(new Date(start_date));
+        const monthEnd = endOfMonth(new Date(start_date));
+        dateRange = {
+          start_at: {
+            $gte: monthStart,
+            $lte: monthEnd,
+          },
+        };
+      } else if (view === "custom" && start_date && end_date) {
+        dateRange = {
+          start_at: {
+            $gte: new Date(start_date),
+            $lte: new Date(end_date),
+          },
+        };
+      }
+
+      if (Object.keys(dateRange).length > 0) {
+        Object.assign(query, dateRange);
+      }
+
+      const meetings = await Meeting.find(query)
+        .populate("mentor_id", "name email profile_picture")
+        .populate("mentee_id", "name email profile_picture")
+        .populate({
+          path: "connection_id",
+          select: "status",
+        })
+        .sort({ start_at: 1 })
+        .lean();
+
+      return meetings;
+    } catch (error) {
+      console.error("Error in getMeetingsByUser:", error);
+      throw error;
     }
-
-    if (Object.keys(dateRange).length > 0) {
-      Object.assign(query, dateRange);
-    }
-
-    return await Meeting.find(query)
-      .populate("mentor_id", "name email profile_picture")
-      .populate("mentee_id", "name email profile_picture")
-      .populate("connection_id", "status")
-      .sort({ start_at: 1 })
-      .lean();
   }
 
   async cancelMeeting(meetingId, userId) {

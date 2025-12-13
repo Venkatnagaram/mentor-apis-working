@@ -1,7 +1,7 @@
 const meetingService = require("../services/meeting.service");
-const { sendSuccess, sendError } = require("../../utils/responseHelper");
+const { successResponse } = require("../../utils/responseHelper");
 
-exports.getUserMeetings = async (req, res) => {
+exports.getUserMeetings = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { status, view, start_date, end_date } = req.query;
@@ -15,24 +15,23 @@ exports.getUserMeetings = async (req, res) => {
 
     const meetings = await meetingService.getMeetingsByUser(userId, filters);
 
-    return sendSuccess(res, meetings, "Meetings retrieved successfully");
+    return successResponse(res, "Meetings retrieved successfully", meetings);
   } catch (error) {
-    return sendError(res, error.message, 500);
+    console.error("Error in getUserMeetings controller:", error);
+    next(error);
   }
 };
 
-exports.cancelMeeting = async (req, res) => {
+exports.cancelMeeting = async (req, res, next) => {
   try {
     const { meetingId } = req.params;
     const userId = req.user.id;
 
     const updatedMeeting = await meetingService.cancelMeeting(meetingId, userId);
 
-    return sendSuccess(res, updatedMeeting, "Meeting cancelled successfully");
+    return successResponse(res, "Meeting cancelled successfully", updatedMeeting);
   } catch (error) {
-    const statusCode = error.message.includes("not found") ? 404 :
-                       error.message.includes("Unauthorized") ? 403 :
-                       error.message.includes("only cancel") ? 400 : 500;
-    return sendError(res, error.message, statusCode);
+    console.error("Error in cancelMeeting controller:", error);
+    next(error);
   }
 };
