@@ -1,5 +1,6 @@
 const messageService = require("../services/message.service");
 const { successResponse, errorResponse } = require("../../utils/responseHelper");
+const { convertResponseFromUTC } = require("../../utils/timezone");
 
 exports.sendMessage = async (req, res, next) => {
   try {
@@ -7,6 +8,7 @@ exports.sendMessage = async (req, res, next) => {
       return errorResponse(res, "Unauthorized", 401);
     }
 
+    const timezone = req.timezone;
     const { connection_id, message_text } = req.body;
 
     const message = await messageService.sendMessage(
@@ -15,7 +17,9 @@ exports.sendMessage = async (req, res, next) => {
       message_text
     );
 
-    return successResponse(res, "Message sent successfully", message, 201);
+    const response = convertResponseFromUTC(message, timezone);
+
+    return successResponse(res, "Message sent successfully", response, 201);
   } catch (err) {
     if (err.message.includes("Connection not found")) {
       return errorResponse(res, err.message, 404);
@@ -36,6 +40,7 @@ exports.getConversationMessages = async (req, res, next) => {
       return errorResponse(res, "Unauthorized", 401);
     }
 
+    const timezone = req.timezone;
     const { connection_id } = req.params;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
@@ -47,11 +52,13 @@ exports.getConversationMessages = async (req, res, next) => {
       limit
     );
 
-    return successResponse(res, "Messages retrieved successfully", {
+    const response = convertResponseFromUTC({
       page,
       limit,
       messages,
-    });
+    }, timezone);
+
+    return successResponse(res, "Messages retrieved successfully", response);
   } catch (err) {
     if (err.message.includes("Connection not found")) {
       return errorResponse(res, err.message, 404);
@@ -91,13 +98,16 @@ exports.getUnreadCount = async (req, res, next) => {
       return errorResponse(res, "Unauthorized", 401);
     }
 
+    const timezone = req.timezone;
     const count = await messageService.getUnreadCount(req.user.id);
     const messages = await messageService.getUnreadMessagesList(req.user.id);
 
-    return successResponse(res, "Unread messages retrieved successfully", {
+    const response = convertResponseFromUTC({
       unread_count: count,
       messages,
-    });
+    }, timezone);
+
+    return successResponse(res, "Unread messages retrieved successfully", response);
   } catch (err) {
     next(err);
   }
@@ -109,12 +119,15 @@ exports.getConversationList = async (req, res, next) => {
       return errorResponse(res, "Unauthorized", 401);
     }
 
+    const timezone = req.timezone;
     const conversations = await messageService.getConversationList(req.user.id);
 
-    return successResponse(res, "Conversation list retrieved successfully", {
+    const response = convertResponseFromUTC({
       count: conversations.length,
       conversations,
-    });
+    }, timezone);
+
+    return successResponse(res, "Conversation list retrieved successfully", response);
   } catch (err) {
     next(err);
   }

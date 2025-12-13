@@ -3,6 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const routes = require("../api/routes");
 const requestLogger = require("../api/middlewares/requestLogger");
+const timezoneMiddleware = require("../api/middlewares/timezone.middleware");
 const { errorHandler } = require("../api/middlewares/error.middleware");
 
 module.exports = (app) => {
@@ -18,6 +19,7 @@ module.exports = (app) => {
   }));
 
   app.use(requestLogger);
+  app.use(timezoneMiddleware);
 
   app.use("/api", routes);
 
